@@ -161,7 +161,9 @@ export function Hero() {
             style={{ transformStyle: "preserve-3d" }}
           >
             <div className="spin-slow">
-              <Pookalam className="h-full w-full drop-shadow-[0_30px_60px_rgba(42,33,20,0.18)]" />
+              <div className="breathe">
+                <Pookalam className="h-full w-full drop-shadow-[0_30px_60px_rgba(42,33,20,0.18)]" />
+              </div>
             </div>
           </div>
         </div>

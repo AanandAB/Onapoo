@@ -24,6 +24,7 @@ const STRINGS: Record<string, { en: string; ml: string }> = {
   nav_home: { en: "Home", ml: "ഹോം" },
   nav_shop: { en: "Shop Flowers", ml: "പൂക്കൾ വാങ്ങൂ" },
   nav_how: { en: "How it works", ml: "എങ്ങനെ പ്രവർത്തിക്കുന്നു" },
+  nav_faq: { en: "FAQ", ml: "പതിവ് ചോദ്യങ്ങൾ" },
   nav_contact: { en: "Contact", ml: "ബന്ധപ്പെടുക" },
 
   hero_kicker: { en: "Fresh Onam flowers · Kannur", ml: "പുതിയ ഓണപ്പൂക്കൾ · കണ്ണൂർ" },

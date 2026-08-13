@@ -18,6 +18,12 @@ export async function getProducts(): Promise<ProductRow[]> {
     .orderBy(asc(products.sortOrder), asc(products.nameEn));
 }
 
+export async function getProductBySlug(slug: string): Promise<ProductRow | undefined> {
+  const db = getDb();
+  const rows = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
+  return rows[0];
+}
+
 export async function getFeaturedProducts(): Promise<ProductRow[]> {
   const db = getDb();
   return db

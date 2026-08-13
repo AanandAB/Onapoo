@@ -39,9 +39,10 @@ export function Header({ storeName, storeNameMl }: { storeName: string; storeNam
   }, []);
 
   const nav = [
-    { href: "#shop", label: t("nav_shop") },
-    { href: "#how", label: t("nav_how") },
-    { href: "#contact", label: t("nav_contact") },
+    { href: "#shop", label: t("nav_shop"), anchor: true },
+    { href: "#how", label: t("nav_how"), anchor: true },
+    { href: "/faq", label: t("nav_faq"), anchor: false },
+    { href: "/contact", label: t("nav_contact"), anchor: false },
   ];
 
   return (
@@ -70,15 +71,25 @@ export function Header({ storeName, storeNameMl }: { storeName: string; storeNam
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-7 md:flex">
-          {nav.map((n) => (
-            <a
-              key={n.href}
-              href={n.href}
-              className="text-sm font-medium text-ink/80 transition-colors hover:text-gold-deep"
-            >
-              {n.label}
-            </a>
-          ))}
+          {nav.map((n) =>
+            n.anchor ? (
+              <a
+                key={n.href}
+                href={n.href}
+                className="text-sm font-medium text-ink/80 transition-colors hover:text-gold-deep"
+              >
+                {n.label}
+              </a>
+            ) : (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="text-sm font-medium text-ink/80 transition-colors hover:text-gold-deep"
+              >
+                {n.label}
+              </Link>
+            ),
+          )}
         </nav>
 
         {/* Actions */}
@@ -130,16 +141,27 @@ export function Header({ storeName, storeNameMl }: { storeName: string; storeNam
       {/* Mobile menu */}
       {menuOpen && (
         <nav className="border-t border-gold/25 bg-cream px-4 py-3 md:hidden">
-          {nav.map((n) => (
-            <a
-              key={n.href}
-              href={n.href}
-              onClick={() => setMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink/85 hover:bg-gold/10"
-            >
-              {n.label}
-            </a>
-          ))}
+          {nav.map((n) =>
+            n.anchor ? (
+              <a
+                key={n.href}
+                href={n.href}
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink/85 hover:bg-gold/10"
+              >
+                {n.label}
+              </a>
+            ) : (
+              <Link
+                key={n.href}
+                href={n.href}
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink/85 hover:bg-gold/10"
+              >
+                {n.label}
+              </Link>
+            ),
+          )}
         </nav>
       )}
     </header>

@@ -1,28 +1,62 @@
 "use client";
 
+import Link from "next/link";
 import { useLang } from "@/lib/i18n";
-import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY, whatsappLink } from "@/lib/site";
+import { WHATSAPP_DISPLAY, whatsappLink, STORE_MAPS_LINK } from "@/lib/site";
 
 export function Footer({ storeName, storeNameMl }: { storeName: string; storeNameMl: string }) {
   const { lang, t } = useLang();
+  const ml = lang === "ml";
+
+  const linkCls = "transition-colors hover:text-gold";
 
   return (
     <footer id="contact" className="relative mt-24 border-t border-gold/25 bg-leaf-deep text-cream">
       <div className="mx-auto max-w-7xl px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-14 sm:px-6 md:pb-14">
-        <div className="grid gap-10 md:grid-cols-3">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
+          {/* Brand */}
           <div>
             <p className="font-display text-2xl font-semibold text-gold">
-              {lang === "ml" ? storeNameMl : storeName}
+              {ml ? storeNameMl : storeName}
             </p>
             <p className="mt-3 max-w-xs text-sm text-cream/75">{t("footer_tag")}</p>
           </div>
 
+          {/* Shop */}
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gold/80">
-              {lang === "ml" ? "ബന്ധപ്പെടുക" : "Contact"}
+              {ml ? "വാങ്ങൂ" : "Shop"}
+            </p>
+            <ul className="space-y-2 text-sm text-cream/75">
+              <li>
+                <a href="#shop" className={linkCls}>{ml ? "എല്ലാ പൂക്കളും" : "All flowers"}</a>
+              </li>
+              <li>
+                <a href="#how" className={linkCls}>{ml ? "എങ്ങനെ പ്രവർത്തിക്കുന്നു" : "How it works"}</a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Info */}
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gold/80">
+              {ml ? "വിവരം" : "Info"}
+            </p>
+            <ul className="space-y-2 text-sm text-cream/75">
+              <li><Link href="/about" className={linkCls}>{ml ? "ഞങ്ങളെ കുറിച്ച്" : "About"}</Link></li>
+              <li><Link href="/faq" className={linkCls}>FAQ</Link></li>
+              <li><Link href="/delivery" className={linkCls}>{ml ? "ഡെലിവറി" : "Delivery"}</Link></li>
+              <li><Link href="/contact" className={linkCls}>{ml ? "ബന്ധപ്പെടുക" : "Contact"}</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gold/80">
+              {ml ? "ബന്ധപ്പെടുക" : "Contact"}
             </p>
             <a
-              href={whatsappLink(lang === "ml" ? "ഹലോ, ഓണപ്പൂക്കൾ ഓർഡർ ചെയ്യണം" : "Hi, I'd like to order Onam flowers")}
+              href={whatsappLink(ml ? "ഹലോ, ഓണപ്പൂക്കൾ ഓർഡർ ചെയ്യണം" : "Hi, I'd like to order Onam flowers")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
@@ -32,20 +66,22 @@ export function Footer({ storeName, storeNameMl }: { storeName: string; storeNam
               </svg>
               WhatsApp {WHATSAPP_DISPLAY}
             </a>
-          </div>
-
-          <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gold/80">
-              {lang === "ml" ? "ഡെലിവറി" : "Delivery"}
-            </p>
-            <p className="text-sm text-cream/75">
-              {lang === "ml" ? "കണ്ണൂർ — 670643" : "Kannur — 670643"}
+            <a
+              href={STORE_MAPS_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 block text-sm text-cream/75 hover:text-gold"
+            >
+              📍 {ml ? "കടയിൽ നിന്ന് എടുക്കാം" : "Store pickup"} · Maps
+            </a>
+            <p className="mt-2 text-sm text-cream/75">
+              {ml ? "കണ്ണൂർ — 670643" : "Kannur — 670643"}
             </p>
           </div>
         </div>
 
         <div className="mt-12 border-t border-cream/15 pt-6 text-center text-xs text-cream/50">
-          © {new Date().getFullYear()} {lang === "ml" ? storeNameMl : storeName} · {t("footer_rights")}
+          © {new Date().getFullYear()} {ml ? storeNameMl : storeName} · {t("footer_rights")}
         </div>
       </div>
     </footer>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
 import { useTilt } from "@/components/motion";
@@ -57,7 +58,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
       style={{ transformStyle: "preserve-3d" }}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-cream-dark">
+      <Link href={`/shop/${product.slug}`} className="relative block aspect-[4/3] overflow-hidden bg-cream-dark">
         {product.image && !imgErr ? (
           <img
             src={product.image}
@@ -89,13 +90,15 @@ export function ProductCard({ product }: { product: ProductRow }) {
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Body */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-ml text-base font-semibold leading-snug" lang={lang}>
-          {name}
-        </h3>
+        <Link href={`/shop/${product.slug}`}>
+          <h3 className="font-ml text-base font-semibold leading-snug transition-colors hover:text-gold-deep" lang={lang}>
+            {name}
+          </h3>
+        </Link>
         <p className="mt-0.5 text-xs text-muted">{color}</p>
 
         <div className="mt-3 flex items-baseline gap-2">

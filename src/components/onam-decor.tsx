@@ -72,3 +72,39 @@ export function KasavuDivider({ className = "" }: { className?: string }) {
     </svg>
   );
 }
+
+/** Thrikkakarappan — the conical clay figure central to Onam. */
+export function Thrikkakarappan({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 120 160" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M60 16 L102 132 Q60 152 18 132 Z" />
+      <path d="M60 4 Q68 12 60 20 Q52 12 60 4 Z" />
+      <path d="M42 96 Q60 106 78 96" stroke="currentColor" strokeWidth="3" fill="none" opacity="0.5" />
+      <path d="M34 118 Q60 128 86 118" stroke="currentColor" strokeWidth="3" fill="none" opacity="0.5" />
+    </svg>
+  );
+}
+
+/** Banana leaf (for the Onam sadya association). */
+export function BananaLeaf({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 200 100" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M100 96 Q16 62 8 10 Q60 22 100 16 Q140 22 192 10 Q184 62 100 96 Z" />
+      <path d="M100 96 L100 16" stroke="currentColor" strokeWidth="3" fill="none" opacity="0.55" />
+      <path d="M100 72 L58 46 M100 56 L62 30 M100 40 L72 20" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.35" />
+      <path d="M100 72 L142 46 M100 56 L138 30 M100 40 L128 20" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.35" />
+    </svg>
+  );
+}
+
+/** Stylised Kathakali mask. */
+export function Kathakali({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 140 170" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M16 88 Q70 14 124 88 L108 94 Q70 46 32 94 Z" />
+      <circle cx="70" cy="58" r="8" />
+      <path d="M70 152 Q26 132 34 94 Q70 82 106 94 Q114 132 70 152 Z" />
+      <path d="M56 150 Q70 162 84 150 Q70 158 56 150 Z" opacity="0.8" />
+    </svg>
+  );
+}

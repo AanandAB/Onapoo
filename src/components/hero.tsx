@@ -8,7 +8,7 @@ import { whatsappLink } from "@/lib/site";
 import { useTilt } from "@/components/motion";
 import { Pookalam } from "@/components/pookalam";
 import { Countdown } from "@/components/countdown";
-import { Nilavilakku, FlowerGlyph } from "@/components/onam-decor";
+import { Nilavilakku, FlowerGlyph, BananaLeaf } from "@/components/onam-decor";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -89,6 +89,7 @@ export function Hero() {
         <FlowerGlyph className="absolute right-[10%] top-10 h-14 w-14 text-gold/10" />
         <FlowerGlyph className="absolute left-[16%] top-28 h-8 w-8 text-chethi/10" />
         <FlowerGlyph className="absolute right-[24%] bottom-10 h-6 w-6 text-marigold/15" />
+        <BananaLeaf className="absolute -right-8 bottom-1/4 h-20 w-auto rotate-12 text-leaf/10" />
       </div>
 
       {/* Ambient falling petals */}

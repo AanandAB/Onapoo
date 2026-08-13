@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { WHATSAPP_DISPLAY, whatsappLink, STORE_MAPS_LINK } from "@/lib/site";
-import { Nilavilakku, Vallam, FlowerGlyph, KasavuDivider } from "@/components/onam-decor";
+import { Nilavilakku, Vallam, FlowerGlyph, KasavuDivider, Thrikkakarappan, Kathakali } from "@/components/onam-decor";
 
 export function Footer({ storeName, storeNameMl }: { storeName: string; storeNameMl: string }) {
   const { lang, t } = useLang();
@@ -22,6 +22,8 @@ export function Footer({ storeName, storeNameMl }: { storeName: string; storeNam
         <FlowerGlyph className="absolute left-[30%] top-12 h-16 w-16 text-gold/[0.07]" />
         <FlowerGlyph className="absolute right-[28%] bottom-24 h-12 w-12 text-cream/[0.06]" />
         <FlowerGlyph className="absolute left-[12%] bottom-16 h-10 w-10 text-gold/[0.06]" />
+        <Thrikkakarappan className="absolute -left-2 top-1/3 h-44 w-auto text-gold/[0.07]" />
+        <Kathakali className="absolute left-[38%] bottom-8 h-32 w-auto text-cream/[0.06]" />
       </div>
       <div className="relative mx-auto max-w-7xl px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-12 sm:px-6 md:pb-14">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">

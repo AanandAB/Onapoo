@@ -8,7 +8,7 @@ export function Footer({ storeName, storeNameMl }: { storeName: string; storeNam
 
   return (
     <footer id="contact" className="relative mt-24 border-t border-gold/25 bg-leaf-deep text-cream">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-14 sm:px-6 md:pb-14">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
             <p className="font-display text-2xl font-semibold text-gold">

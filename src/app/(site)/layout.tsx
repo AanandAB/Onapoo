@@ -5,6 +5,8 @@ import { CartDrawer } from "@/components/cart-drawer";
 import { CartToast } from "@/components/cart-toast";
 import { AnnouncementBar } from "@/components/announcement";
 import { ScrollProgress } from "@/components/motion";
+import { BottomNav } from "@/components/bottom-nav";
+import { CartBar } from "@/components/cart-bar";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Footer storeName={settings.storeName} storeNameMl={settings.storeNameMl} />
       <CartDrawer />
       <CartToast />
+      <BottomNav />
+      <CartBar />
     </>
   );
 }

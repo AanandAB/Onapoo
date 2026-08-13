@@ -1,5 +1,6 @@
 import { getCategories, getProducts } from "@/lib/queries";
 import { Hero } from "@/components/hero";
+import { Marquee } from "@/components/marquee";
 import { HowItWorks } from "@/components/how-it-works";
 import { Catalog } from "@/components/catalog";
 
@@ -11,6 +12,7 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
+      <Marquee />
       <HowItWorks />
       <Catalog products={products} categories={categories} />
     </>

@@ -233,7 +233,7 @@ export function CheckoutForm({
   };
 
   const inputCls =
-    "w-full rounded-xl border border-ink/15 bg-paper px-4 py-3 text-sm text-ink placeholder:text-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
+    "w-full rounded-xl border border-ink/15 bg-paper px-4 py-3 text-base text-ink placeholder:text-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -273,14 +273,15 @@ export function CheckoutForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-semibold">{labels.name}</label>
-              <input required value={form.name} onChange={set("name")} className={inputCls} placeholder="Asha Kumar" />
+              <input required autoComplete="name" value={form.name} onChange={set("name")} className={inputCls} placeholder="Asha Kumar" />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-semibold">{labels.phone}</label>
               <input
                 required
                 type="tel"
-                inputMode="numeric"
+                inputMode="tel"
+                autoComplete="tel"
                 pattern="[0-9+ ]{10,15}"
                 value={form.phone}
                 onChange={set("phone")}
@@ -294,12 +295,12 @@ export function CheckoutForm({
             <>
               <div>
                 <label className="mb-1.5 block text-sm font-semibold">{labels.address}</label>
-                <textarea required rows={2} value={form.address} onChange={set("address")} className={inputCls} placeholder="House name, street" />
+                <textarea required autoComplete="street-address" rows={2} value={form.address} onChange={set("address")} className={inputCls} placeholder="House name, street" />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-sm font-semibold">{labels.pincode}</label>
-                  <input required inputMode="numeric" value={form.pincode} onChange={set("pincode")} className={inputCls} />
+                  <input required inputMode="numeric" autoComplete="postal-code" maxLength={6} value={form.pincode} onChange={set("pincode")} className={inputCls} />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-semibold">{labels.landmark}</label>

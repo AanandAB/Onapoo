@@ -6,7 +6,7 @@
 - **GitHub:** https://github.com/AanandAB/Onapoo
 
 ## Login
-- Username: `admin`  ·  Password: `onam2026`  → **change this after first login** (product manager has no "change password" UI yet — change it in the D1 `admins` table, or ask for a password-change feature).
+- Username: `admin`  ·  Password: `[REDACTED — was exposed in this public repo, must be changed]`  → change it in the D1 `admins` table (no "change password" UI yet), or ask for a password-change feature.
 
 ## Day-to-day (from the admin panel)
 - **Products** (`/admin/products`) — edit rates, stock status, featured, and add images (paste a URL or upload a file — no R2 needed).

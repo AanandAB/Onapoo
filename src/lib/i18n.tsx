@@ -61,6 +61,7 @@ const STRINGS: Record<string, { en: string; ml: string }> = {
   cart_checkout: { en: "Checkout", ml: "ചെക്ക്ഔട്ട്" },
   cart_note: { en: "Delivery charge added at checkout", ml: "ചെക്ക്ഔട്ടിൽ ഡെലിവറി ചാർജ് ചേർക്കും" },
   cart_remove: { en: "Remove", ml: "നീക്കം" },
+  cart_continue: { en: "Continue shopping", ml: "തുടർന്ന് വാങ്ങൂ" },
 
   unit_bunch: { en: "bunch", ml: "കെട്ട്" },
   unit_kg: { en: "kg", ml: "കിലോ" },

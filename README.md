@@ -7,7 +7,7 @@ Fresh Onam flowers delivered across Kannur — a seasonal e-commerce site for se
 - **Next.js 16** (App Router, Turbopack) + TypeScript
 - **@opennextjs/cloudflare** — runs on Cloudflare Workers
 - **Cloudflare D1** (SQLite) via **Drizzle ORM**
-- **Cloudflare R2** — product image storage
+- **Product images** — self-hosted in `/public/images` + admin uploads stored as base64 data URLs in D1 (no R2)
 - **Cloudflare Pages** — static assets + hosting
 
 ## Features

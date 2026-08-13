@@ -18,6 +18,8 @@ export type CartItem = {
   qty: number;
 };
 
+type Toast = { nameEn: string; nameMl: string };
+
 type CartCtx = {
   items: CartItem[];
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
@@ -28,6 +30,7 @@ type CartCtx = {
   subtotal: number;
   open: boolean;
   setOpen: (v: boolean) => void;
+  toast: Toast | null;
 };
 
 const CartContext = createContext<CartCtx | null>(null);
@@ -35,6 +38,7 @@ const CartContext = createContext<CartCtx | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [open, setOpen] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -65,7 +69,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...item, qty }];
     });
-    setOpen(true);
+    // Don't open the drawer — show a toast so the customer can keep browsing.
+    setToast({ nameEn: item.name, nameMl: item.nameMl });
   };
 
   const remove = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
@@ -82,8 +87,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CartCtx>(() => {
     const count = items.reduce((n, i) => n + i.qty, 0);
     const subtotal = items.reduce((n, i) => n + i.qty * i.price, 0);
-    return { items, add, remove, setQty, clear, count, subtotal, open, setOpen };
-  }, [items, open]);
+    return { items, add, remove, setQty, clear, count, subtotal, open, setOpen, toast };
+  }, [items, open, toast]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

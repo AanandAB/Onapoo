@@ -13,15 +13,15 @@ export function CartDrawer() {
 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
-      {/* Backdrop */}
+      {/* Backdrop — light, no blur, so the customer can still see the shop */}
       <button
         aria-label="Close"
         onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-ink/20"
       />
 
-      {/* Panel */}
-      <div className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-paper shadow-lift">
+      {/* Panel — right slide-in, keeps part of the page visible on mobile */}
+      <div className="absolute right-0 top-0 flex h-full w-[88%] max-w-md flex-col bg-paper shadow-lift">
         <div className="flex items-center justify-between border-b border-gold/25 px-5 py-4">
           <p className="font-display text-lg font-semibold">
             {t("cart_title")} <span className="text-muted">({count})</span>
@@ -101,6 +101,13 @@ export function CartDrawer() {
             >
               {t("cart_checkout")}
             </Link>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="mt-2 block w-full rounded-full border border-ink/15 py-3 text-center text-sm font-semibold text-ink hover:bg-cream"
+            >
+              {t("cart_continue")}
+            </button>
           </div>
         )}
       </div>

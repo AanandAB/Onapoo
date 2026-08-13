@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { WHATSAPP_DISPLAY, whatsappLink, STORE_MAPS_LINK } from "@/lib/site";
+import { Nilavilakku, Vallam, FlowerGlyph, KasavuDivider } from "@/components/onam-decor";
 
 export function Footer({ storeName, storeNameMl }: { storeName: string; storeNameMl: string }) {
   const { lang, t } = useLang();
@@ -11,8 +12,18 @@ export function Footer({ storeName, storeNameMl }: { storeName: string; storeNam
   const linkCls = "transition-colors hover:text-gold";
 
   return (
-    <footer id="contact" className="relative mt-24 border-t border-gold/25 bg-leaf-deep text-cream">
-      <div className="mx-auto max-w-7xl px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-14 sm:px-6 md:pb-14">
+    <footer id="contact" className="relative mt-24 overflow-hidden bg-leaf-deep text-cream">
+      {/* Kasavu border + Onam motifs */}
+      <KasavuDivider className="h-4 w-full text-gold/80" />
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <Vallam className="absolute -bottom-3 right-0 h-28 w-auto text-cream/[0.07]" />
+        <Nilavilakku className="absolute -right-3 top-10 h-44 w-auto text-gold/10" />
+        <Nilavilakku className="absolute -left-5 bottom-6 h-32 w-auto text-gold/[0.08]" />
+        <FlowerGlyph className="absolute left-[30%] top-12 h-16 w-16 text-gold/[0.07]" />
+        <FlowerGlyph className="absolute right-[28%] bottom-24 h-12 w-12 text-cream/[0.06]" />
+        <FlowerGlyph className="absolute left-[12%] bottom-16 h-10 w-10 text-gold/[0.06]" />
+      </div>
+      <div className="relative mx-auto max-w-7xl px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-12 sm:px-6 md:pb-14">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
           {/* Brand */}
           <div>

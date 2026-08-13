@@ -18,7 +18,7 @@ export type CartItem = {
   qty: number;
 };
 
-type Toast = { nameEn: string; nameMl: string };
+type Toast = { nameEn: string; nameMl: string; count: number };
 
 type CartCtx = {
   items: CartItem[];
@@ -70,7 +70,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, { ...item, qty }];
     });
     // Don't open the drawer — show a toast so the customer can keep browsing.
-    setToast({ nameEn: item.name, nameMl: item.nameMl });
+    const currentCount = items.reduce((n, i) => n + i.qty, 0);
+    setToast({ nameEn: item.name, nameMl: item.nameMl, count: currentCount + qty });
   };
 
   const remove = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));

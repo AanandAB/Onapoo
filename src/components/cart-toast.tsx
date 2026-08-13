@@ -24,6 +24,7 @@ export function CartToast() {
         <span className="text-leaf">✓</span>
         <span>
           {t("added")} — {lang === "ml" ? toast.nameMl : toast.nameEn}
+          <span className="text-cream/70"> · {toast.count} {t("in_basket")}</span>
         </span>
       </div>
     </div>

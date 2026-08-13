@@ -21,13 +21,14 @@ function FlowerGlyph({ className = "h-16 w-16" }: { className?: string }) {
 
 export function ProductCard({ product }: { product: ProductRow }) {
   const { lang, t } = useLang();
-  const { add } = useCart();
-  const [added, setAdded] = useState(false);
+  const { add, setQty, items } = useCart();
   const [imgErr, setImgErr] = useState(false);
 
   const name = lang === "ml" ? product.nameMl : product.nameEn;
   const color = lang === "ml" ? product.colorMl : product.colorEn;
   const out = product.stockStatus === "out_of_stock";
+
+  const qty = items.find((i) => i.id === product.id)?.qty ?? 0;
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
@@ -43,8 +44,6 @@ export function ProductCard({ product }: { product: ProductRow }) {
       unit: product.unit,
       price: product.price,
     });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
   };
 
   return (
@@ -103,19 +102,41 @@ export function ProductCard({ product }: { product: ProductRow }) {
           <span className="ml-auto text-xs text-muted">/ {unitLabel(product.unit, t)}</span>
         </div>
 
-        <button
-          onClick={onAdd}
-          disabled={out}
-          className={`mt-4 rounded-full py-2.5 text-sm font-semibold transition-all ${
-            out
-              ? "cursor-not-allowed bg-ink/10 text-ink/40"
-              : added
-                ? "bg-leaf text-cream"
-                : "bg-gold text-cream hover:-translate-y-0.5 hover:bg-gold-deep"
-          }`}
-        >
-          {out ? t("out_of_stock") : added ? t("added") : t("add_to_cart")}
-        </button>
+        {out ? (
+          <button
+            disabled
+            className="mt-4 w-full cursor-not-allowed rounded-full bg-ink/10 py-2.5 text-sm font-semibold text-ink/40"
+          >
+            {t("out_of_stock")}
+          </button>
+        ) : qty === 0 ? (
+          <button
+            onClick={onAdd}
+            className="mt-4 w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-cream transition-all hover:-translate-y-0.5 hover:bg-gold-deep"
+          >
+            {t("add_to_cart")}
+          </button>
+        ) : (
+          <div className="mt-4 flex items-center justify-between gap-1 rounded-full border border-gold/50 bg-gold/10 px-1 py-1">
+            <button
+              onClick={() => setQty(product.id, qty - 1)}
+              aria-label="Decrease"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper text-lg font-semibold text-ink shadow-sm hover:bg-cream-dark"
+            >
+              −
+            </button>
+            <span className="min-w-0 truncate px-2 text-center text-xs font-semibold sm:text-sm">
+              {qty} <span className="text-muted">{t("in_basket")}</span>
+            </span>
+            <button
+              onClick={() => setQty(product.id, qty + 1)}
+              aria-label="Increase"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold text-lg font-semibold text-cream shadow-sm hover:bg-gold-deep"
+            >
+              +
+            </button>
+          </div>
+        )}
       </div>
     </article>
   );

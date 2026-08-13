@@ -50,7 +50,8 @@ const STRINGS: Record<string, { en: string; ml: string }> = {
   how_3_d: { en: "Your order reaches us instantly on WhatsApp.", ml: "നിങ്ങളുടെ ഓർഡർ തൽക്ഷണം വാട്ട്സ്ആപ്പിൽ ഞങ്ങൾക്ക് എത്തും." },
 
   add_to_cart: { en: "Add to Cart", ml: "കാർട്ടിൽ ചേർക്കൂ" },
-  added: { en: "Added ✓", ml: "ചേർത്തു ✓" },
+  added: { en: "Added", ml: "ചേർത്തു" },
+  in_basket: { en: "in basket", ml: "കൊട്ടയിൽ" },
   out_of_stock: { en: "Sold out", ml: "തീർന്നു" },
   per_unit: { en: "per", ml: "ഒരു" },
   qty: { en: "Qty", ml: "എണ്ണം" },

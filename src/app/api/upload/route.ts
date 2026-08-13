@@ -21,6 +21,9 @@ export async function POST(req: Request) {
   const buf = await file.arrayBuffer();
 
   const { env } = getCloudflareContext();
+  if (!env.MEDIA) {
+    return Response.json({ error: "Storage (R2) not configured" }, { status: 503 });
+  }
   await env.MEDIA.put(key, buf, {
     httpMetadata: { contentType: file.type || "image/jpeg" },
   });

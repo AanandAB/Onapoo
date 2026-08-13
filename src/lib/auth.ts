@@ -81,7 +81,17 @@ export async function verifyPassword(
 
 // ---- Signed session tokens (HMAC-SHA256) ----
 
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 function getSecret(): string {
+  // Production Workers: AUTH_SECRET is a Worker secret (env binding), NOT process.env.
+  try {
+    const ctx = getCloudflareContext();
+    const s = (ctx?.env as { AUTH_SECRET?: string } | undefined)?.AUTH_SECRET;
+    if (s) return s;
+  } catch {
+    // no Cloudflare context (standalone script) — fall through
+  }
   return (
     process.env.AUTH_SECRET ??
     "onapookkal-dev-secret-change-me-9f3a2b1c4d5e6f708192a3b4c5d6e7f8"

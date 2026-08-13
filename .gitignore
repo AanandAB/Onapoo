@@ -43,3 +43,7 @@ next-env.d.ts
 # cloudflare / opennext (local state + build output)
 .wrangler/
 .open-next/
+
+# deploy artifacts
+seed-remote.sql
+.dev.vars

@@ -9,9 +9,12 @@
     {
       "binding": "DB",
       "database_name": "onapookkal-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "70f656a7-769d-408e-8c78-d789848682f6",
       "migrations_dir": "drizzle/migrations"
     }
-  ],
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "onapookkal-media" }]
+  ]
+  // R2 (product image upload via /api/upload + /media/[key]).
+  // Enable R2 in the Cloudflare dashboard (needs a payment method), then uncomment
+  // and run: npx wrangler r2 bucket create onapookkal-media
+  // "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "onapookkal-media" }]
 }

@@ -8,6 +8,7 @@ export async function GET(
 ) {
   const { key } = await params;
   const { env } = getCloudflareContext();
+  if (!env.MEDIA) return new Response("Not found", { status: 404 });
   const obj = await env.MEDIA.get(key);
   if (!obj) return new Response("Not found", { status: 404 });
 

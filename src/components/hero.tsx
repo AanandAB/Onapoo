@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useLang } from "@/lib/i18n";
 import { whatsappLink } from "@/lib/site";
+import { useTilt } from "@/components/motion";
 import { Pookalam } from "@/components/pookalam";
 import { Countdown } from "@/components/countdown";
 
@@ -23,6 +24,7 @@ const PETALS = [
 export function Hero() {
   const { lang, t } = useLang();
   const rootRef = useRef<HTMLDivElement>(null);
+  const { ref: tiltRef, onMouseMove: tiltMove, onMouseLeave: tiltLeave } = useTilt<HTMLDivElement>(6);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -50,6 +52,14 @@ export function Hero() {
       // Parallax: pookalam drifts slower than the copy as you scroll
       gsap.to(".hero-pookalam", {
         yPercent: -12,
+        ease: "none",
+        scrollTrigger: { trigger: rootRef.current, start: "top top", end: "bottom top", scrub: 0.6 },
+      });
+      gsap.to(".hero-pookalam", {
+        rotateX: 16,
+        rotateY: -8,
+        scale: 1.05,
+        transformPerspective: 1100,
         ease: "none",
         scrollTrigger: { trigger: rootRef.current, start: "top top", end: "bottom top", scrub: 0.6 },
       });
@@ -143,8 +153,16 @@ export function Hero() {
 
         {/* Pookalam */}
         <div className="hero-pookalam order-1 mx-auto w-full max-w-sm md:order-2 md:max-w-none">
-          <div className="spin-slow">
-            <Pookalam className="h-full w-full drop-shadow-[0_30px_60px_rgba(42,33,20,0.18)]" />
+          <div
+            ref={tiltRef}
+            onMouseMove={tiltMove}
+            onMouseLeave={tiltLeave}
+            className="will-change-transform"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <div className="spin-slow">
+              <Pookalam className="h-full w-full drop-shadow-[0_30px_60px_rgba(42,33,20,0.18)]" />
+            </div>
           </div>
         </div>
       </div>

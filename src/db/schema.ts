@@ -53,6 +53,9 @@ export const ORDER_STATUSES = [
 ] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+export const DELIVERY_METHODS = ["delivery", "pickup"] as const;
+export type DeliveryMethod = (typeof DELIVERY_METHODS)[number];
+
 // ---- JSON shapes ----
 
 export type OrderItem = {
@@ -145,6 +148,10 @@ export const orders = sqliteTable(
     pincode: text("pincode").notNull(),
     landmark: text("landmark"),
     deliveryDate: text("delivery_date"), // ISO date string
+    deliveryMethod: text("delivery_method", { enum: DELIVERY_METHODS })
+      .notNull()
+      .default("delivery"),
+    location: text("location"), // "lat,lng" when customer shares location (delivery)
     items: text("items", { mode: "json" }).$type<OrderItem[]>().notNull(),
     subtotal: integer("subtotal").notNull(),
     deliveryCharge: integer("delivery_charge").notNull().default(0),

@@ -4,10 +4,11 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, ONAM_THIRUVONAM } from "@/lib/site";
+import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK } from "@/lib/site";
 import { placeOrder, confirmRazorpayPayment, type PlaceOrderResult } from "@/lib/order-actions";
 
 type Status = "idle" | "submitting" | "success";
+type Method = "delivery" | "pickup";
 
 export function CheckoutForm({
   deliveryCharge,
@@ -32,12 +33,17 @@ export function CheckoutForm({
     deliveryDate: "",
     notes: "",
   });
+  const [method, setMethod] = useState<Method>("delivery");
+  const [location, setLocation] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState("");
   const [payment, setPayment] = useState<"cod" | "whatsapp" | "razorpay">("whatsapp");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
   const [result, setResult] = useState<PlaceOrderResult | null>(null);
 
-  const total = subtotal + deliveryCharge;
+  const effectiveDelivery = method === "pickup" ? 0 : deliveryCharge;
+  const total = subtotal + effectiveDelivery;
   const today = new Date().toISOString().slice(0, 10);
   const maxDate = ONAM_THIRUVONAM.toISOString().slice(0, 10);
 
@@ -49,6 +55,11 @@ export function CheckoutForm({
       lang === "ml"
         ? {
             title: "ചെക്ക്ഔട്ട്",
+            method: "പൂക്കൾ എങ്ങനെ വേണം?",
+            delivery: "ഹോം ഡെലിവറി",
+            deliverySub: "നിങ്ങളുടെ വിലാസത്തിലേക്ക് ഡെലിവറി",
+            pickup: "കടയിൽ നിന്ന് എടുക്കാം",
+            pickupSub: "ഞങ്ങളുടെ കടയിൽ നിന്ന് സ്വയം എടുക്കാം",
             name: "പേര്",
             phone: "ഫോൺ നമ്പർ",
             address: "വിലാസം",
@@ -56,6 +67,12 @@ export function CheckoutForm({
             landmark: "ലാൻഡ്മാർക്ക് (ഓപ്ഷണൽ)",
             date: "ഡെലിവറി ദിവസം",
             notes: "കുറിപ്പുകൾ (ഓപ്ഷണൽ)",
+            shareLoc: "എന്റെ ലൊക്കേഷൻ അയയ്ക്കുക",
+            locating: "ലൊക്കേഷൻ കണ്ടെത്തുന്നു…",
+            locShared: "ലൊക്കേഷൻ ലഭിച്ചു ✓",
+            locError: "ലൊക്കേഷൻ ലഭിച്ചില്ല — വിലാസം നൽകുക",
+            pickupNote: "കടയിൽ നിന്ന് എടുക്കുക (ഡെലിവറി ചാർജ് ഇല്ല)",
+            openMap: "ഗൂഗിൾ മാപ്പിൽ തുറക്കുക",
             pay: "പേയ്മെന്റ് രീതി",
             cod: "ഡെലിവറിയിൽ പണം (COD)",
             wa: "വാട്ട്സ്ആപ്പിൽ പണം",
@@ -68,11 +85,17 @@ export function CheckoutForm({
             successSub: "നിങ്ങളുടെ ഓർഡർ ഞങ്ങൾക്ക് ലഭിച്ചു. സ്ഥിരീകരിക്കാൻ WhatsApp തുറക്കുക.",
             openWa: "WhatsApp തുറക്കുക",
             total: "ആകെ",
-            delivery: "ഡെലിവറി",
+            deliveryL: "ഡെലിവറി",
             subtotal: "ഉപതുക",
+            free: "സൗജന്യം",
           }
         : {
             title: "Checkout",
+            method: "How do you want your flowers?",
+            delivery: "Home delivery",
+            deliverySub: "Delivered to your address",
+            pickup: "Store pickup",
+            pickupSub: "Collect it from our store",
             name: "Name",
             phone: "Phone number",
             address: "Address",
@@ -80,6 +103,12 @@ export function CheckoutForm({
             landmark: "Landmark (optional)",
             date: "Delivery day",
             notes: "Notes (optional)",
+            shareLoc: "Share my location",
+            locating: "Getting location…",
+            locShared: "Location shared ✓",
+            locError: "Couldn't get location — please type your address",
+            pickupNote: "Pick up from our store (no delivery charge)",
+            openMap: "Open in Google Maps",
             pay: "Payment method",
             cod: "Cash on delivery",
             wa: "Pay on WhatsApp",
@@ -92,11 +121,32 @@ export function CheckoutForm({
             successSub: "Your order is with us. Open WhatsApp to confirm.",
             openWa: "Open WhatsApp",
             total: "Total",
-            delivery: "Delivery",
+            deliveryL: "Delivery",
             subtotal: "Subtotal",
+            free: "Free",
           },
     [lang],
   );
+
+  const shareLocation = () => {
+    setLocError("");
+    if (!("geolocation" in navigator)) {
+      setLocError(labels.locError);
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation(`${pos.coords.latitude},${pos.coords.longitude}`);
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        setLocError(labels.locError);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
 
   if (status === "success" && result?.ok) {
     return (
@@ -154,6 +204,8 @@ export function CheckoutForm({
       pincode: form.pincode,
       landmark: form.landmark,
       deliveryDate: form.deliveryDate,
+      deliveryMethod: method,
+      location: method === "delivery" && location ? location : undefined,
       notes: form.notes,
       paymentMethod: payment,
       lang,
@@ -190,6 +242,34 @@ export function CheckoutForm({
       <form onSubmit={submit} className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
         {/* Left: details */}
         <div className="space-y-4">
+          {/* Delivery method */}
+          <div>
+            <label className="mb-2 block text-sm font-semibold">{labels.method}</label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(
+                [
+                  { v: "delivery" as const, title: labels.delivery, sub: labels.deliverySub, icon: "🏠" },
+                  { v: "pickup" as const, title: labels.pickup, sub: labels.pickupSub, icon: "🛍️" },
+                ]
+              ).map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setMethod(opt.v)}
+                  className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
+                    method === opt.v ? "border-gold bg-gold/10" : "border-ink/15 bg-paper hover:bg-cream"
+                  }`}
+                >
+                  <span className="text-xl leading-none">{opt.icon}</span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{opt.title}</span>
+                    <span className="block text-xs text-muted">{opt.sub}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-semibold">{labels.name}</label>
@@ -209,20 +289,71 @@ export function CheckoutForm({
               />
             </div>
           </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold">{labels.address}</label>
-            <textarea required rows={2} value={form.address} onChange={set("address")} className={inputCls} placeholder="House name, street" />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold">{labels.pincode}</label>
-              <input required inputMode="numeric" value={form.pincode} onChange={set("pincode")} className={inputCls} />
+
+          {method === "delivery" ? (
+            <>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold">{labels.address}</label>
+                <textarea required rows={2} value={form.address} onChange={set("address")} className={inputCls} placeholder="House name, street" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold">{labels.pincode}</label>
+                  <input required inputMode="numeric" value={form.pincode} onChange={set("pincode")} className={inputCls} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold">{labels.landmark}</label>
+                  <input value={form.landmark} onChange={set("landmark")} className={inputCls} />
+                </div>
+              </div>
+
+              {/* Share location */}
+              <div className="rounded-xl border border-dashed border-gold/40 bg-gold/5 p-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={shareLocation}
+                    disabled={locating}
+                    className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-paper px-4 py-2 text-sm font-semibold text-gold-deep transition-colors hover:bg-gold/10 disabled:opacity-60"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z" strokeLinejoin="round" />
+                      <circle cx="12" cy="10" r="2.6" />
+                    </svg>
+                    {locating ? labels.locating : location ? labels.locShared : labels.shareLoc}
+                  </button>
+                  {location && (
+                    <a
+                      href={`https://maps.google.com/?q=${location}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-leaf underline"
+                    >
+                      {labels.openMap}
+                    </a>
+                  )}
+                </div>
+                {locError && <p className="mt-2 text-xs text-chethi">{locError}</p>}
+              </div>
+            </>
+          ) : (
+            <div className="rounded-xl border border-leaf/30 bg-leaf/5 p-4">
+              <p className="text-sm font-semibold text-leaf">{labels.pickupNote}</p>
+              <a
+                href={STORE_MAPS_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-2 rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-cream transition-transform hover:-translate-y-0.5"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z" strokeLinejoin="round" />
+                  <circle cx="12" cy="10" r="2.6" />
+                </svg>
+                {labels.openMap}
+              </a>
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold">{labels.landmark}</label>
-              <input value={form.landmark} onChange={set("landmark")} className={inputCls} />
-            </div>
-          </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-semibold">{labels.date}</label>
@@ -297,8 +428,8 @@ export function CheckoutForm({
               <span>{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between text-muted">
-              <span>{labels.delivery}</span>
-              <span>{deliveryCharge > 0 ? formatPrice(deliveryCharge) : (lang === "ml" ? "സൗജന്യം" : "Free")}</span>
+              <span>{method === "pickup" ? labels.pickup : labels.deliveryL}</span>
+              <span>{effectiveDelivery > 0 ? formatPrice(effectiveDelivery) : labels.free}</span>
             </div>
             <div className="flex justify-between pt-2 font-display text-lg font-semibold">
               <span>{labels.total}</span>

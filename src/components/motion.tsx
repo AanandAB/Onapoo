@@ -29,15 +29,19 @@ export function MotionProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-/** IntersectionObserver-based scroll reveal. Wrap a section to fade/slide it in. */
+type RevealVariant = "up" | "left" | "right" | "zoom";
+
+/** IntersectionObserver-based scroll reveal with a direction variant. */
 export function Reveal({
   children,
   className = "",
   delay = 0,
+  variant = "up",
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
+  variant?: RevealVariant;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -57,9 +61,40 @@ export function Reveal({
     return () => io.disconnect();
   }, []);
 
+  const variantCls =
+    variant === "left" ? "reveal-left" : variant === "right" ? "reveal-right" : variant === "zoom" ? "reveal-zoom" : "";
+
   return (
-    <div ref={ref} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+    <div ref={ref} className={`reveal ${variantCls} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
     </div>
   );
+}
+
+/**
+ * Mouse-tracking 3D tilt hook. Attach the returned ref + handlers to an element
+ * to give it a subtle perspective tilt that follows the cursor.
+ */
+export function useTilt<T extends HTMLElement = HTMLElement>(max = 7) {
+  const ref = useRef<T | null>(null);
+
+  const onMouseMove = (e: { clientX: number; clientY: number }) => {
+    if (reducedMotion()) return;
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.transition = "transform 0.08s ease-out";
+    el.style.transform = `perspective(1000px) rotateX(${(-py * max).toFixed(2)}deg) rotateY(${(px * max).toFixed(2)}deg) translateY(-6px) scale3d(1.02,1.02,1.02)`;
+  };
+
+  const onMouseLeave = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transition = "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)";
+    el.style.transform = "";
+  };
+
+  return { ref, onMouseMove, onMouseLeave };
 }

@@ -22,6 +22,7 @@ export async function GET() {
     "Pincode",
     "Landmark",
     "Delivery date",
+    "Delivery method",
     "Items",
     "Subtotal",
     "Delivery",
@@ -29,6 +30,7 @@ export async function GET() {
     "Payment method",
     "Payment status",
     "Order status",
+    "Location",
     "Notes",
   ];
 
@@ -41,6 +43,7 @@ export async function GET() {
     o.pincode,
     o.landmark ?? "",
     o.deliveryDate ?? "",
+    o.deliveryMethod ?? "delivery",
     o.items.map((i) => `${i.name} x${i.qty}`).join("; "),
     o.subtotal,
     o.deliveryCharge,
@@ -48,6 +51,7 @@ export async function GET() {
     o.paymentMethod,
     o.paymentStatus,
     o.orderStatus,
+    o.location ?? "",
     o.notes ?? "",
   ]);
 

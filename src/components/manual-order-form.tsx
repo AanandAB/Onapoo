@@ -46,6 +46,7 @@ export function ManualOrderForm({
     paymentMethod: "cod" as ManualOrderInput["paymentMethod"],
     paymentStatus: "pending" as ManualOrderInput["paymentStatus"],
     orderStatus: "new" as ManualOrderInput["orderStatus"],
+    deliveryMethod: "delivery" as ManualOrderInput["deliveryMethod"],
   });
 
   const [items, setItems] = useState<Item[]>([
@@ -217,6 +218,13 @@ export function ManualOrderForm({
                       {STATUS_LABEL[s]}
                     </option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className={label}>Delivery method</label>
+                <select value={form.deliveryMethod} onChange={set("deliveryMethod")} className={input}>
+                  <option value="delivery">Home delivery</option>
+                  <option value="pickup">Store pickup</option>
                 </select>
               </div>
               <div>

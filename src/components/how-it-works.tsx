@@ -21,13 +21,12 @@ export function HowItWorks() {
             {lang === "ml" ? "മൂന്ന് എളുപ്പ ഘട്ടങ്ങൾ" : "Three easy steps"}
           </h2>
         </div>
+      </Reveal>
 
-        <div className="grid gap-6 sm:grid-cols-3">
-          {steps.map((s) => (
-            <div
-              key={s.n}
-              className="kasavu-frame relative rounded-2xl bg-paper p-6 text-center shadow-soft"
-            >
+      <div className="grid gap-6 sm:grid-cols-3">
+        {steps.map((s, i) => (
+          <Reveal key={s.n} delay={i * 140} variant={i === 0 ? "left" : i === 2 ? "right" : "up"} className="h-full">
+            <div className="kasavu-frame relative h-full rounded-2xl bg-paper p-6 text-center shadow-soft">
               <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-gold/10 text-gold-deep">
                 <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7">
                   <path d={s.icon} strokeLinecap="round" strokeLinejoin="round" />
@@ -41,9 +40,9 @@ export function HowItWorks() {
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">{s.desc}</p>
             </div>
-          ))}
-        </div>
-      </Reveal>
+          </Reveal>
+        ))}
+      </div>
     </section>
   );
 }

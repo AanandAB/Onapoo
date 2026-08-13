@@ -2,9 +2,9 @@
 
 import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { orders, products, type OrderItem } from "@/db/schema";
+import { orders, products, type DeliveryMethod, type OrderItem } from "@/db/schema";
 import { getStoreSettings } from "@/lib/queries";
-import { WHATSAPP_NUMBER } from "@/lib/site";
+import { WHATSAPP_NUMBER, STORE_MAPS_LINK } from "@/lib/site";
 
 export type PlaceOrderInput = {
   items: { productId: string; qty: number }[];
@@ -14,6 +14,8 @@ export type PlaceOrderInput = {
   pincode: string;
   landmark?: string;
   deliveryDate?: string;
+  deliveryMethod?: DeliveryMethod; // "delivery" | "pickup"
+  location?: string; // "lat,lng" when customer shares location
   notes?: string;
   paymentMethod: "cod" | "whatsapp" | "razorpay";
   lang: "en" | "ml";
@@ -40,6 +42,8 @@ function buildWhatsAppMessage(
   address: string,
   pincode: string,
   deliveryDate: string,
+  deliveryMethod: DeliveryMethod,
+  location: string,
   paymentMethod: string,
   items: OrderItem[],
   subtotal: number,
@@ -54,6 +58,9 @@ function buildWhatsAppMessage(
     phone: ml ? "ഫോൺ" : "Phone",
     address: ml ? "വിലാസം" : "Address",
     delivery: ml ? "ഡെലിവറി" : "Delivery",
+    method: ml ? "രീതി" : "Method",
+    pickup: ml ? "കടയിൽ നിന്ന് എടുക്കാം" : "Store pickup",
+    location: ml ? "ലൊക്കേഷൻ" : "Location",
     items: ml ? "ഇനങ്ങൾ" : "Items",
     subtotal: ml ? "ഉപതുക" : "Subtotal",
     deliveryCharge: ml ? "ഡെലിവറി ചാർജ്" : "Delivery charge",
@@ -65,7 +72,12 @@ function buildWhatsAppMessage(
   lines.push(`*${L.order}: ${orderNumber}*`);
   lines.push(`${L.name}: ${customerName}`);
   lines.push(`${L.phone}: ${phone}`);
-  lines.push(`${L.address}: ${address}, ${pincode}`);
+  if (deliveryMethod === "pickup") {
+    lines.push(`${L.method}: ${L.pickup} — ${STORE_MAPS_LINK}`);
+  } else {
+    lines.push(`${L.address}: ${address}, ${pincode}`);
+    if (location) lines.push(`${L.location}: https://maps.google.com/?q=${location}`);
+  }
   if (deliveryDate) lines.push(`${L.delivery}: ${deliveryDate}`);
   lines.push("");
   lines.push(`${L.items}:`);
@@ -85,6 +97,7 @@ function buildWhatsAppMessage(
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   try {
     const db = getDb();
+    const deliveryMethod: DeliveryMethod = input.deliveryMethod ?? "delivery";
 
     if (!input.items?.length) return { ok: false, error: "Cart is empty" };
     const cleanItems = input.items
@@ -92,8 +105,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       .map((i) => ({ productId: i.productId, qty: Math.floor(i.qty) }));
     if (!cleanItems.length) return { ok: false, error: "Cart is empty" };
 
-    if (!input.customerName?.trim() || !input.phone?.trim() || !input.address?.trim() || !input.pincode?.trim()) {
-      return { ok: false, error: "Please fill name, phone, address and pincode" };
+    if (!input.customerName?.trim() || !input.phone?.trim()) {
+      return { ok: false, error: "Please fill name and phone" };
+    }
+    if (deliveryMethod === "delivery" && (!input.address?.trim() || !input.pincode?.trim())) {
+      return { ok: false, error: "Please fill address and pincode" };
     }
 
     // Re-price from DB (never trust client prices)
@@ -115,8 +131,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
     const subtotal = items.reduce((n, i) => n + i.price * i.qty, 0);
     const settings = await getStoreSettings();
-    const deliveryCharge = settings.deliveryCharge;
+    const deliveryCharge = deliveryMethod === "pickup" ? 0 : settings.deliveryCharge;
     const total = subtotal + deliveryCharge;
+
+    const address = deliveryMethod === "pickup" ? "Store pickup" : input.address.trim();
+    const pincode = deliveryMethod === "pickup" ? "670643" : input.pincode.trim();
 
     const orderNumber = `ONM-${Date.now().toString(36).toUpperCase()}`;
     const orderId = crypto.randomUUID();
@@ -127,16 +146,18 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       customerName: input.customerName.trim(),
       phone: input.phone.trim(),
       email: null,
-      address: input.address.trim(),
-      pincode: input.pincode.trim(),
+      address,
+      pincode,
       landmark: input.landmark?.trim() || null,
       deliveryDate: input.deliveryDate || null,
+      deliveryMethod,
+      location: input.location?.trim() || null,
       items,
       subtotal,
       deliveryCharge,
       total,
       paymentMethod: input.paymentMethod,
-      paymentStatus: input.paymentMethod === "cod" ? "pending" : "pending",
+      paymentStatus: "pending",
       orderStatus: "new",
       notes: input.notes?.trim() || null,
     });
@@ -146,9 +167,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
         orderNumber,
         input.customerName.trim(),
         input.phone.trim(),
-        input.address.trim(),
-        input.pincode.trim(),
+        address,
+        pincode,
         input.deliveryDate || "",
+        deliveryMethod,
+        input.location?.trim() || "",
         input.paymentMethod,
         items,
         subtotal,

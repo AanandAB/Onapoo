@@ -14,6 +14,7 @@ import {
   orders,
   products,
   ORDER_STATUSES,
+  type DeliveryMethod,
   type OfferType,
   type OrderItem,
   type OrderStatus,
@@ -185,6 +186,7 @@ export type ManualOrderInput = {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
+  deliveryMethod?: DeliveryMethod;
   items: ManualOrderItem[];
 };
 
@@ -211,7 +213,8 @@ export async function addManualOrder(
 
   const subtotal = items.reduce((n, i) => n + i.price * i.qty, 0);
   const settings = await getStoreSettings();
-  const deliveryCharge = settings.deliveryCharge;
+  const deliveryMethod: DeliveryMethod = input.deliveryMethod ?? "delivery";
+  const deliveryCharge = deliveryMethod === "pickup" ? 0 : settings.deliveryCharge;
   const total = subtotal + deliveryCharge;
   const orderNumber = `ONM-${Date.now().toString(36).toUpperCase()}`;
 
@@ -225,6 +228,8 @@ export async function addManualOrder(
     pincode: input.pincode?.trim() || "670643",
     landmark: input.landmark?.trim() || null,
     deliveryDate: input.deliveryDate || null,
+    deliveryMethod,
+    location: null,
     items,
     subtotal,
     deliveryCharge,

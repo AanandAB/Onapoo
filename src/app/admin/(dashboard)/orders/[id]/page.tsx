@@ -61,6 +61,8 @@ export default async function OrderDetailPage({
             <div className="flex justify-between"><dt className="text-muted">Phone</dt><dd className="font-medium">{o.phone}</dd></div>
             <div className="flex justify-between"><dt className="text-muted">Address</dt><dd className="text-right font-medium">{o.address}</dd></div>
             <div className="flex justify-between"><dt className="text-muted">Pincode</dt><dd className="font-medium">{o.pincode}</dd></div>
+            <div className="flex justify-between"><dt className="text-muted">Method</dt><dd className="font-medium">{o.deliveryMethod === "pickup" ? "Store pickup" : "Home delivery"}</dd></div>
+            {o.location && <div className="flex justify-between"><dt className="text-muted">Location</dt><dd className="font-medium"><a href={`https://maps.google.com/?q=${o.location}`} target="_blank" rel="noopener noreferrer" className="text-leaf underline">View on map</a></dd></div>}
             {o.landmark && <div className="flex justify-between"><dt className="text-muted">Landmark</dt><dd className="font-medium">{o.landmark}</dd></div>}
             {o.deliveryDate && <div className="flex justify-between"><dt className="text-muted">Delivery</dt><dd className="font-medium">{o.deliveryDate}</dd></div>}
           </dl>

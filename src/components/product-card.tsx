@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
+import { useTilt } from "@/components/motion";
 import { formatPrice } from "@/lib/site";
 import type { ProductRow } from "@/lib/queries";
 
@@ -23,6 +24,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
   const { lang, t } = useLang();
   const { add, setQty, items } = useCart();
   const [imgErr, setImgErr] = useState(false);
+  const { ref, onMouseMove, onMouseLeave } = useTilt(7);
 
   const name = lang === "ml" ? product.nameMl : product.nameEn;
   const color = lang === "ml" ? product.colorMl : product.colorEn;
@@ -47,7 +49,13 @@ export function ProductCard({ product }: { product: ProductRow }) {
   };
 
   return (
-    <article className="kasavu-frame group flex flex-col overflow-hidden rounded-2xl bg-paper shadow-soft transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-lift">
+    <article
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      className="kasavu-frame group flex flex-col overflow-hidden rounded-2xl bg-paper shadow-soft transition-shadow duration-300 will-change-transform hover:shadow-lift"
+      style={{ transformStyle: "preserve-3d" }}
+    >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-cream-dark">
         {product.image && !imgErr ? (

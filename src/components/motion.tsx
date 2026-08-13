@@ -11,11 +11,16 @@ const reducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Lenis smooth scroll + GSAP ScrollTrigger wiring. */
+/** Lenis smooth scroll + GSAP ScrollTrigger wiring (with smooth anchor scrolling). */
 export function MotionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (reducedMotion()) return;
-    const lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+    const lenis = new Lenis({
+      lerp: 0.1,
+      smoothWheel: true,
+      // Smooth-scroll #anchor links, offset for the 64px sticky header.
+      anchors: { offset: -72 },
+    });
     lenis.on("scroll", ScrollTrigger.update);
     const raf = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
@@ -67,6 +72,38 @@ export function Reveal({
   return (
     <div ref={ref} className={`reveal ${variantCls} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
+    </div>
+  );
+}
+
+/** Thin gold scroll-progress bar pinned to the top of the viewport. */
+export function ScrollProgress() {
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = barRef.current;
+      if (!el) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      el.style.transform = `scaleX(${p})`;
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] h-[3px]">
+      <div
+        ref={barRef}
+        className="h-full w-full origin-left scale-x-0 bg-gradient-to-r from-gold via-marigold to-chethi"
+        style={{ transition: "transform 0.12s linear" }}
+      />
     </div>
   );
 }

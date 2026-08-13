@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
@@ -29,6 +29,14 @@ export function Header({ storeName, storeNameMl }: { storeName: string; storeNam
   const { lang, toggle, t } = useLang();
   const { count, setOpen } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const nav = [
     { href: "#shop", label: t("nav_shop") },
@@ -37,7 +45,13 @@ export function Header({ storeName, storeNameMl }: { storeName: string; storeNam
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gold/25 bg-cream/85 backdrop-blur-md">
+    <header
+      className={`sticky top-0 z-40 border-b transition-all duration-300 ${
+        scrolled
+          ? "border-gold/30 bg-cream/95 shadow-soft backdrop-blur-md"
+          : "border-transparent bg-cream/70 backdrop-blur-sm"
+      }`}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5">

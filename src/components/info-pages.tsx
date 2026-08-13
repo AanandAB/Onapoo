@@ -20,18 +20,6 @@ const FAQS: Qa[] = [
     aMl: "ചെക്ക്ഔട്ടിൽ ഡെലിവറി ദിവസം തിരഞ്ഞെടുക്കുക. തിരുവോണ ദിനത്തിൽ ലഭിക്കാൻ നേരത്തെ ഓർഡർ ചെയ്യുക.",
   },
   {
-    q: "Are the flowers fresh?",
-    qMl: "പൂക്കൾ പുതുമയുള്ളതാണോ?",
-    a: "Yes — plucked and packed fresh, same day, so your pookalam looks its best.",
-    aMl: "അതെ — അന്നേദിവസം പറിച്ച് പുതുതായി പാക്ക് ചെയ്യുന്നു.",
-  },
-  {
-    q: "What if flowers arrive wilted?",
-    qMl: "പൂക്കൾ വാടിപ്പോയാൽ?",
-    a: "Send us a photo on WhatsApp and we'll replace or refund — no questions asked.",
-    aMl: "വാട്സ്ആപ്പിൽ ഒരു ഫോട്ടോ അയയ്ക്കൂ — ഞങ്ങൾ മാറ്റിത്തരും അല്ലെങ്കിൽ റീഫണ്ട് നൽകും.",
-  },
-  {
     q: "How do I pay?",
     qMl: "എങ്ങനെ പണമടയ്ക്കാം?",
     a: "Pay on WhatsApp, cash on delivery, or online via UPI/card.",

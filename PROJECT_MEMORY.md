@@ -9,7 +9,7 @@ Bilingual (English default + Malayalam toggle). Online orders are saved to D1 **
 
 ## 2. Live + repo
 - Storefront: `https://onapookkal.aanandab44.workers.dev`
-- Custom domain: `onapookkal.store` — **PENDING** (see §9)
+- Custom domain: `https://onapookkal.store` — **LIVE** (apex). `www` not attached yet (returns 522).
 - Admin: `/admin`
 - GitHub: `https://github.com/AanandAB/Onapoo` (branch `main`, **public repo**)
 
@@ -65,11 +65,12 @@ npx tsx scripts/seed.ts     # seed
 - Admin credentials: **in `HANDOVER.md` "Login" section — ⚠️ plaintext in a PUBLIC repo (see §10, must fix)**
 
 ## 9. Current state / pending (as of last session)
-- **Custom domain `onapookkal.store`: BLOCKED.** Cloudflare error `100117` — the zone already has A/AAAA DNS records ("externally managed"). User must delete those records (Cloudflare dashboard → onapookkal.store → DNS → Records), then re-add `routes` (with `custom_domain: true`) to `wrangler.jsonc` + `npx wrangler deploy`.
+- **Custom domain `onapookkal.store`: LIVE** (apex, serving latest build). `www.onapookkal.store` still returns 522 — needs to be added as a custom domain (or a www→apex redirect) via dashboard or `wrangler`.
+- Admin password was CHANGED in D1 (remote + local) — see §10.
 - Next candidate work (from the UX/IA research): real product photos + "finished pookalam" gallery; trust signals (star rating + testimonials + freshness guarantee); indexable category URLs; product schema.org structured data.
 
-## 10. SECURITY TODO (important)
-`HANDOVER.md` commits the admin password **in plaintext** to a **public** repo. Before anything else, next session: (a) change the admin password in D1, (b) redact it from `HANDOVER.md`. Also the default password is a guessable string.
+## 10. Security (resolved)
+Admin password was exposed in the public repo → redacted from `HANDOVER.md`, and the actual password was **changed** in D1 (remote + local) and verified with `verifyPassword`. The new password is known only to the owner — do NOT write it into any repo file. Username is `admin`.
 
 ## 11. Git
 - All work committed + pushed through commit `173c152` (last session).

@@ -1,6 +1,6 @@
-import { requireAdmin, listOrdersAdmin } from "@/lib/admin";
+import { requireAdmin, listOrdersAdmin, getDistinctPincodes } from "@/lib/admin";
 import { updateOrderStatus } from "@/app/admin/actions";
-import { ORDER_STATUSES, type OrderRow } from "@/db/schema";
+import { ORDER_STATUSES, DELIVERY_METHODS, type OrderRow } from "@/db/schema";
 import { formatPrice } from "@/lib/site";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -19,6 +19,11 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: "bg-chethi/10 text-chethi",
 };
 
+const METHOD_LABEL: Record<string, string> = {
+  delivery: "Home delivery",
+  pickup: "Pickup",
+};
+
 function waUrl(phone: string, text: string) {
   const p = phone.replace(/[^0-9]/g, "");
   const intl = p.length === 10 ? "91" + p : p;
@@ -34,32 +39,46 @@ function customerMsg(o: OrderRow) {
 }
 
 function fmtDate(d: Date) {
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) +
+  return (
+    d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) +
     " " +
-    d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+  );
+}
+
+function fmtDelivDate(s: string | null) {
+  if (!s) return "—";
+  const d = new Date(s + "T00:00:00");
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", weekday: "short" });
 }
 
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; method?: string; pincode?: string }>;
 }) {
   await requireAdmin();
-  const { status } = await searchParams;
-  const orders = await listOrdersAdmin(status ?? "all");
+  const params = await searchParams;
+  const { status, q, method, pincode } = params;
+  const orders = await listOrdersAdmin({ status: status ?? "all", q, method, pincode });
+  const pincodes = await getDistinctPincodes();
 
   const tabs = [
     { value: "all", label: "All" },
     ...ORDER_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] })),
   ];
   const active = status && ORDER_STATUSES.includes(status as (typeof ORDER_STATUSES)[number]) ? status : "all";
+  const hasFilter = Boolean(q || method || pincode);
 
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold">Orders</h1>
-          <p className="text-sm text-muted">{orders.length} {active === "all" ? "orders" : `${STATUS_LABEL[active].toLowerCase()} orders`}</p>
+          <p className="text-sm text-muted">
+            {orders.length} {active === "all" ? "orders" : `${STATUS_LABEL[active].toLowerCase()} orders`}
+            {hasFilter && " (filtered)"}
+          </p>
         </div>
         <div className="flex gap-2">
           <a
@@ -77,7 +96,8 @@ export default async function OrdersPage({
         </div>
       </div>
 
-      <div className="mb-5 flex flex-wrap gap-2">
+      {/* Status tabs */}
+      <div className="mb-4 flex flex-wrap gap-2">
         {tabs.map((t) => (
           <a
             key={t.value}
@@ -91,17 +111,66 @@ export default async function OrdersPage({
         ))}
       </div>
 
+      {/* Filters */}
+      <form method="get" action="/admin/orders" className="mb-5 flex flex-wrap items-center gap-2">
+        {active !== "all" && <input type="hidden" name="status" value={active} />}
+        <input
+          type="text"
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder="Search name, phone, address, area…"
+          className="min-w-[200px] flex-1 rounded-full border border-ink/15 bg-paper px-4 py-2 text-sm focus:border-gold focus:outline-none"
+        />
+        <select
+          name="method"
+          defaultValue={method ?? ""}
+          className="rounded-full border border-ink/15 bg-paper px-3 py-2 text-sm"
+        >
+          <option value="">All fulfilment</option>
+          {DELIVERY_METHODS.map((m) => (
+            <option key={m} value={m}>
+              {METHOD_LABEL[m] ?? m}
+            </option>
+          ))}
+        </select>
+        <select
+          name="pincode"
+          defaultValue={pincode ?? ""}
+          className="rounded-full border border-ink/15 bg-paper px-3 py-2 text-sm"
+        >
+          <option value="">All pincodes</option>
+          {pincodes.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          className="rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-cream hover:bg-leaf-deep"
+        >
+          Apply
+        </button>
+        {hasFilter && (
+          <a href="/admin/orders" className="rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-ink">
+            Clear
+          </a>
+        )}
+      </form>
+
       {orders.length === 0 ? (
         <div className="rounded-2xl bg-paper p-10 text-center text-muted shadow-soft">
-          No orders here yet.
+          No orders match.
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl bg-paper shadow-soft">
-          <table className="w-full min-w-[860px] text-left text-sm">
+          <table className="w-full min-w-[980px] text-left text-sm">
             <thead className="border-b border-ink/10 text-xs uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Order</th>
                 <th className="px-4 py-3">Customer</th>
+                <th className="px-4 py-3">Delivery</th>
+                <th className="px-4 py-3">Items</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Payment</th>
                 <th className="px-4 py-3">Status</th>
@@ -120,11 +189,34 @@ export default async function OrdersPage({
                   <td className="px-4 py-3">
                     <p className="font-semibold">{o.customerName}</p>
                     <p className="text-xs text-muted">{o.phone}</p>
+                    <p className="mt-1 max-w-[180px] text-xs text-muted">
+                      {o.address}
+                      {o.landmark ? ` · ${o.landmark}` : ""}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-semibold">{METHOD_LABEL[o.deliveryMethod] ?? o.deliveryMethod}</p>
+                    <p className="text-xs text-muted">{o.pincode}</p>
+                    <p className="text-xs text-muted">{fmtDelivDate(o.deliveryDate)}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-semibold">{o.items.reduce((s, i) => s + i.qty, 0)}</p>
+                    <p className="max-w-[180px] truncate text-xs text-muted">
+                      {o.items.map((i) => i.name).join(", ")}
+                    </p>
                   </td>
                   <td className="px-4 py-3 font-semibold">{formatPrice(o.total)}</td>
                   <td className="px-4 py-3">
                     <p className="text-xs">{o.paymentMethod.toUpperCase()}</p>
-                    <p className={`text-xs ${o.paymentStatus === "paid" ? "text-leaf" : o.paymentStatus === "failed" ? "text-chethi" : "text-muted"}`}>
+                    <p
+                      className={`text-xs ${
+                        o.paymentStatus === "paid"
+                          ? "text-leaf"
+                          : o.paymentStatus === "failed"
+                            ? "text-chethi"
+                            : "text-muted"
+                      }`}
+                    >
                       {o.paymentStatus}
                     </p>
                   </td>
@@ -142,9 +234,7 @@ export default async function OrdersPage({
                           </option>
                         ))}
                       </select>
-                      <button className="rounded-lg bg-leaf px-2.5 py-1.5 text-xs font-semibold text-cream">
-                        ✓
-                      </button>
+                      <button className="rounded-lg bg-leaf px-2.5 py-1.5 text-xs font-semibold text-cream">✓</button>
                     </form>
                   </td>
                   <td className="px-4 py-3">

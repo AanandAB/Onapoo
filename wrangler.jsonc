@@ -13,6 +13,10 @@
       "database_id": "70f656a7-769d-408e-8c78-d789848682f6",
       "migrations_dir": "drizzle/migrations"
     }
+  ],
+  "routes": [
+    { "pattern": "onapookkal.store", "custom_domain": true },
+    { "pattern": "www.onapookkal.store", "custom_domain": true }
   ]
   // R2 (product image upload via /api/upload + /media/[key]).
   // Enable R2 in the Cloudflare dashboard (needs a payment method), then uncomment

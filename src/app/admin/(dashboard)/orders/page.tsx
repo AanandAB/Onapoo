@@ -1,4 +1,4 @@
-import { requireAdmin, listOrdersAdmin, getDistinctPincodes } from "@/lib/admin";
+import { requireAdmin, listOrdersAdmin, getDistinctPincodes, getDistinctDistricts, getDistinctAreas } from "@/lib/admin";
 import { updateOrderStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES, DELIVERY_METHODS, type OrderRow } from "@/db/schema";
 import { formatPrice } from "@/lib/site";
@@ -55,20 +55,22 @@ function fmtDelivDate(s: string | null) {
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string; method?: string; pincode?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; method?: string; pincode?: string; district?: string; area?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
-  const { status, q, method, pincode } = params;
-  const orders = await listOrdersAdmin({ status: status ?? "all", q, method, pincode });
+  const { status, q, method, pincode, district, area } = params;
+  const orders = await listOrdersAdmin({ status: status ?? "all", q, method, pincode, district, area });
   const pincodes = await getDistinctPincodes();
+  const districts = await getDistinctDistricts();
+  const areas = await getDistinctAreas();
 
   const tabs = [
     { value: "all", label: "All" },
     ...ORDER_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] })),
   ];
   const active = status && ORDER_STATUSES.includes(status as (typeof ORDER_STATUSES)[number]) ? status : "all";
-  const hasFilter = Boolean(q || method || pincode);
+  const hasFilter = Boolean(q || method || pincode || district || area);
 
   return (
     <div>
@@ -145,6 +147,30 @@ export default async function OrdersPage({
             </option>
           ))}
         </select>
+        <select
+          name="district"
+          defaultValue={district ?? ""}
+          className="rounded-full border border-ink/15 bg-paper px-3 py-2 text-sm"
+        >
+          <option value="">All districts</option>
+          {districts.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+        <select
+          name="area"
+          defaultValue={area ?? ""}
+          className="rounded-full border border-ink/15 bg-paper px-3 py-2 text-sm"
+        >
+          <option value="">All areas</option>
+          {areas.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-cream hover:bg-leaf-deep"
@@ -197,6 +223,12 @@ export default async function OrdersPage({
                   <td className="px-4 py-3">
                     <p className="font-semibold">{METHOD_LABEL[o.deliveryMethod] ?? o.deliveryMethod}</p>
                     <p className="text-xs text-muted">{o.pincode}</p>
+                    {o.area && (
+                      <p className="text-xs text-muted">
+                        {o.area}
+                        {o.district ? `, ${o.district}` : ""}
+                      </p>
+                    )}
                     <p className="text-xs text-muted">{fmtDelivDate(o.deliveryDate)}</p>
                   </td>
                   <td className="px-4 py-3">

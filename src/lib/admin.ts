@@ -74,6 +74,8 @@ export interface OrderFilters {
   q?: string;
   method?: string;
   pincode?: string;
+  district?: string;
+  area?: string;
 }
 
 export async function listOrdersAdmin(filters: OrderFilters = {}) {
@@ -87,6 +89,12 @@ export async function listOrdersAdmin(filters: OrderFilters = {}) {
   }
   if (filters.pincode && filters.pincode !== "all") {
     query = query.where(eq(orders.pincode, filters.pincode));
+  }
+  if (filters.district && filters.district !== "all") {
+    query = query.where(eq(orders.district, filters.district));
+  }
+  if (filters.area && filters.area !== "all") {
+    query = query.where(eq(orders.area, filters.area));
   }
   if (filters.q && filters.q.trim()) {
     const q = `%${filters.q.trim()}%`;
@@ -107,6 +115,18 @@ export async function getDistinctPincodes(): Promise<string[]> {
   const db = getDb();
   const rows = await db.selectDistinct({ pincode: orders.pincode }).from(orders);
   return rows.map((r) => r.pincode).filter(Boolean).sort();
+}
+
+export async function getDistinctDistricts(): Promise<string[]> {
+  const db = getDb();
+  const rows = await db.selectDistinct({ district: orders.district }).from(orders);
+  return rows.map((r) => r.district).filter((x): x is string => Boolean(x)).sort();
+}
+
+export async function getDistinctAreas(): Promise<string[]> {
+  const db = getDb();
+  const rows = await db.selectDistinct({ area: orders.area }).from(orders);
+  return rows.map((r) => r.area).filter((x): x is string => Boolean(x)).sort();
 }
 
 export async function getOrderById(id: string) {

@@ -150,6 +150,19 @@ export function ProductDetail({
                 <Plus className="h-4 w-4" />
               </button>
             </div>
+            <input
+              type="number"
+              min={1}
+              inputMode="numeric"
+              value={qty}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                if (!Number.isNaN(v)) setQty(Math.max(1, Math.min(999, v)));
+              }}
+              aria-label={L.qty}
+              className="h-11 w-20 rounded-full border border-ink/15 bg-paper text-center text-base font-semibold focus:border-gold focus:outline-none"
+            />
+            <span className="text-sm text-muted">{unitLabel(product.unit, t)}</span>
             <button
               onClick={onAdd}
               disabled={out}

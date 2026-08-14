@@ -137,7 +137,19 @@ export function ProductCard({ product }: { product: ProductRow }) {
               −
             </button>
             <span className="min-w-0 truncate px-2 text-center text-xs font-semibold sm:text-sm">
-              {qty} <span className="text-muted">{t("in_basket")}</span>
+              <input
+                type="number"
+                min={1}
+                inputMode="numeric"
+                value={qty}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!Number.isNaN(v)) setQty(product.id, Math.max(1, Math.min(999, v)));
+                }}
+                aria-label="Quantity"
+                className="w-12 rounded-md bg-paper text-center text-sm font-semibold focus:outline-none"
+              />
+              <span className="ml-1 text-muted">{t("in_basket")}</span>
             </span>
             <button
               onClick={() => setQty(product.id, qty + 1)}

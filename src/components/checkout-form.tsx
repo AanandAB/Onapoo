@@ -29,6 +29,8 @@ export function CheckoutForm({
     phone: "",
     address: "",
     pincode: "670643",
+    district: "",
+    area: "",
     landmark: "",
     deliveryDate: "",
     notes: "",
@@ -41,6 +43,23 @@ export function CheckoutForm({
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
   const [result, setResult] = useState<PlaceOrderResult | null>(null);
+  const [pincodeArea, setPincodeArea] = useState("");
+
+  const lookupPincode = async () => {
+    const code = form.pincode.trim();
+    if (!/^\d{6}$/.test(code)) return;
+    setPincodeArea("");
+    try {
+      const res = await fetch(`/api/pincode?code=${code}`);
+      const data = (await res.json()) as { ok?: boolean; district?: string; area?: string };
+      if (data.ok && data.area && data.district) {
+        setForm((f) => ({ ...f, district: data.district!, area: data.area! }));
+        setPincodeArea(`${data.area}, ${data.district}`);
+      }
+    } catch {
+      /* lookup is best-effort */
+    }
+  };
 
   const effectiveDelivery = method === "pickup" ? 0 : deliveryCharge;
   const total = subtotal + effectiveDelivery;
@@ -202,6 +221,8 @@ export function CheckoutForm({
       phone: form.phone,
       address: form.address,
       pincode: form.pincode,
+      district: form.district || undefined,
+      area: form.area || undefined,
       landmark: form.landmark,
       deliveryDate: form.deliveryDate,
       deliveryMethod: method,
@@ -300,7 +321,8 @@ export function CheckoutForm({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-sm font-semibold">{labels.pincode}</label>
-                  <input required inputMode="numeric" autoComplete="postal-code" maxLength={6} value={form.pincode} onChange={set("pincode")} className={inputCls} />
+                  <input required inputMode="numeric" autoComplete="postal-code" maxLength={6} value={form.pincode} onChange={set("pincode")} onBlur={lookupPincode} className={inputCls} />
+                  {pincodeArea && <p className="mt-1 text-xs text-leaf">📍 {pincodeArea}</p>}
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-semibold">{labels.landmark}</label>

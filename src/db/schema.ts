@@ -146,6 +146,8 @@ export const orders = sqliteTable(
     email: text("email"),
     address: text("address").notNull(),
     pincode: text("pincode").notNull(),
+    district: text("district"),
+    area: text("area"),
     landmark: text("landmark"),
     deliveryDate: text("delivery_date"), // ISO date string
     deliveryMethod: text("delivery_method", { enum: DELIVERY_METHODS })

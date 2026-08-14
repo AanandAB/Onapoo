@@ -12,6 +12,8 @@ export type PlaceOrderInput = {
   phone: string;
   address: string;
   pincode: string;
+  district?: string;
+  area?: string;
   landmark?: string;
   deliveryDate?: string;
   deliveryMethod?: DeliveryMethod; // "delivery" | "pickup"
@@ -148,6 +150,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       email: null,
       address,
       pincode,
+      district: input.district?.trim() || null,
+      area: input.area?.trim() || null,
       landmark: input.landmark?.trim() || null,
       deliveryDate: input.deliveryDate || null,
       deliveryMethod,

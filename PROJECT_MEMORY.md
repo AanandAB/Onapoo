@@ -9,7 +9,7 @@ Bilingual (English default + Malayalam toggle). Online orders are saved to D1 **
 
 ## 2. Live + repo
 - Storefront: `https://onapookkal.aanandab44.workers.dev`
-- Custom domain: `https://onapookkal.store` — **LIVE** (apex). `www` not attached yet (returns 522).
+- Custom domain: `https://onapookkal.store` — **LIVE** (apex + `www`; `www` 301→apex via `src/middleware.ts`).
 - Admin: `/admin`
 - GitHub: `https://github.com/AanandAB/Onapoo` (branch `main`, **public repo**)
 
@@ -65,7 +65,7 @@ npx tsx scripts/seed.ts     # seed
 - Admin credentials: **in `HANDOVER.md` "Login" section — ⚠️ plaintext in a PUBLIC repo (see §10, must fix)**
 
 ## 9. Current state / pending (as of last session)
-- **Custom domain `onapookkal.store`: LIVE** (apex, serving latest build). `www.onapookkal.store` still returns 522 — needs to be added as a custom domain (or a www→apex redirect) via dashboard or `wrangler`.
+- **Custom domain `onapookkal.store`: LIVE** — apex + `www` both attached as Worker custom domains; `www` 301-redirects to apex via `src/middleware.ts`. All three URLs active (workers.dev, apex, www).
 - Admin password was CHANGED in D1 (remote + local) — see §10.
 - Next candidate work (from the UX/IA research): real product photos + "finished pookalam" gallery; trust signals (star rating + testimonials + freshness guarantee); indexable category URLs; product schema.org structured data.
 

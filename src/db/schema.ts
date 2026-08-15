@@ -111,7 +111,8 @@ export const products = sqliteTable(
       .notNull()
       .default(false),
     sortOrder: integer("sort_order").notNull().default(0),
-    image: text("image"), // public URL (R2) or /images fallback
+    image: text("image"), // primary image (URL or data URL)
+    images: text("images", { mode: "json" }).$type<string[]>(), // full gallery (includes primary)
     ...timestamps,
   },
   (t) => [

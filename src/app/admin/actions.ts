@@ -85,6 +85,16 @@ export async function saveProduct(formData: FormData): Promise<void> {
   const db = getDb();
   const id = str(formData, "id");
 
+  const imagesStr = str(formData, "images");
+  let images: string[] = [];
+  if (imagesStr) {
+    try {
+      images = (JSON.parse(imagesStr) as string[]).filter(Boolean);
+    } catch {
+      images = [];
+    }
+  }
+
   const data = {
     slug: str(formData, "slug") ?? `p-${Date.now()}`,
     nameEn: str(formData, "nameEn") ?? "Unnamed",
@@ -100,7 +110,8 @@ export async function saveProduct(formData: FormData): Promise<void> {
     stock: num(formData, "stock") ?? 0,
     isFeatured: bool(formData, "isFeatured"),
     sortOrder: num(formData, "sortOrder") ?? 0,
-    image: str(formData, "image"),
+    image: images[0] ?? null,
+    images: images.length ? images : null,
   };
 
   if (id) {

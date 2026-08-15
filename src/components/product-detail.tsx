@@ -31,6 +31,7 @@ export function ProductDetail({
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [imgErr, setImgErr] = useState(false);
+  const [active, setActive] = useState(0);
 
   const ml = lang === "ml";
   const name = ml ? product.nameMl : product.nameEn;
@@ -38,6 +39,7 @@ export function ProductDetail({
   const desc = ml ? product.descriptionMl || product.descriptionEn : product.descriptionEn;
   const out = product.stock <= 0;
   const low = !out && product.stock <= LOW_STOCK_THRESHOLD;
+  const gallery = product.images?.length ? product.images : product.image ? [product.image] : [];
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
@@ -89,28 +91,52 @@ export function ProductDetail({
       </Link>
 
       <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-        {/* Image */}
-        <div className="kasavu-frame relative aspect-square overflow-hidden rounded-2xl bg-cream-dark">
-          {product.image && !imgErr ? (
-            <img
-              src={product.image}
-              alt={name}
-              onError={() => setImgErr(true)}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 grid place-items-center text-gold/40">
-              <FlowerGlyph className="h-40 w-40" />
-            </div>
-          )}
-          {discount && (
-            <span className="absolute left-4 top-4 rounded-full bg-chethi px-3 py-1 text-xs font-bold text-white shadow-sm">
-              −{discount}%
-            </span>
-          )}
-          {out && (
-            <div className="absolute inset-0 grid place-items-center bg-ink/40">
-              <span className="rounded-full bg-ink/80 px-4 py-1.5 text-sm font-semibold text-white">{L.out}</span>
+        {/* Image + gallery */}
+        <div>
+          <div className="kasavu-frame relative aspect-square overflow-hidden rounded-2xl bg-cream-dark">
+            {gallery[active] && !imgErr ? (
+              <img
+                src={gallery[active]}
+                alt={name}
+                onError={() => setImgErr(true)}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 grid place-items-center text-gold/40">
+                <FlowerGlyph className="h-40 w-40" />
+              </div>
+            )}
+            {discount && (
+              <span className="absolute left-4 top-4 rounded-full bg-chethi px-3 py-1 text-xs font-bold text-white shadow-sm">
+                −{discount}%
+              </span>
+            )}
+            {out && (
+              <div className="absolute inset-0 grid place-items-center bg-ink/40">
+                <span className="rounded-full bg-ink/80 px-4 py-1.5 text-sm font-semibold text-white">{L.out}</span>
+              </div>
+            )}
+          </div>
+
+          {gallery.length > 1 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {gallery.map((g, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    setActive(i);
+                    setImgErr(false);
+                  }}
+                  aria-label={`Image ${i + 1}`}
+                  className={`h-16 w-16 overflow-hidden rounded-lg border-2 bg-cream-dark transition-all ${
+                    i === active ? "border-gold" : "border-transparent opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={g} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
             </div>
           )}
         </div>

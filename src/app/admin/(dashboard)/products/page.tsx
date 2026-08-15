@@ -6,7 +6,7 @@ import {
 } from "@/lib/admin";
 import { saveProduct, deleteProduct } from "@/app/admin/actions";
 import { PRODUCT_UNITS, LOW_STOCK_THRESHOLD, type ProductRow, type CategoryRow } from "@/db/schema";
-import { ImagePicker } from "@/components/image-picker";
+import { GalleryPicker } from "@/components/gallery-picker";
 import { formatPrice } from "@/lib/site";
 
 const input =
@@ -230,8 +230,10 @@ function ProductForm({
       </div>
 
       <div className="mt-4">
-        <label className={label}>Image</label>
-        <ImagePicker defaultValue={item?.image} />
+        <label className={label}>Images (first = cover)</label>
+        <GalleryPicker
+          defaultValue={item?.images?.length ? item.images : item?.image ? [item.image] : []}
+        />
       </div>
 
       <div className="mt-6 flex gap-3">

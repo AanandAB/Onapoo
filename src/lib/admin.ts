@@ -5,6 +5,7 @@ import { COOKIE_NAME, verifySessionToken, type SessionPayload } from "@/lib/auth
 import { getDb } from "@/db";
 import {
   categories,
+  coupons,
   offers,
   orders,
   products,
@@ -40,6 +41,11 @@ export async function listProductsAdmin() {
     .select()
     .from(products)
     .orderBy(asc(products.sortOrder), asc(products.nameEn));
+}
+
+export async function listCoupons() {
+  const db = getDb();
+  return db.select().from(coupons).orderBy(asc(coupons.used), asc(coupons.code));
 }
 
 export async function getProductById(id: string) {

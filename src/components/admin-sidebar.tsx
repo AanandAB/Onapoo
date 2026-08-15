@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/admin", label: "Dashboard", icon: "M3 3h8v8H3zM13 3h8v5h-8zM13 12h8v9h-8zM3 15h8v6H3z" },
   { href: "/admin/products", label: "Products", icon: "M12 3c3 3 6 4.5 6 8a6 6 0 1 1-12 0c0-3.5 3-5 6-8z" },
   { href: "/admin/offers", label: "Offers", icon: "M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8z" },
+  { href: "/admin/coupons", label: "Coupons", icon: "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01" },
   { href: "/admin/orders", label: "Orders", icon: "M6 2h9l4 4v16H6zM15 2v4h4M9 12h6M9 16h6" },
   { href: "/admin/reports", label: "Reports", icon: "M4 20V10M10 20V4M16 20v-8M22 20H2" },
 ];

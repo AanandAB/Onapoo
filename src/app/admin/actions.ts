@@ -10,6 +10,7 @@ import { getStoreSettings } from "@/lib/queries";
 import { getDb } from "@/db";
 import {
   admins,
+  coupons,
   offers,
   orders,
   products,
@@ -169,6 +170,14 @@ export async function deleteOffer(formData: FormData): Promise<void> {
   revalidatePath("/admin/offers");
   revalidatePath("/");
   redirect("/admin/offers");
+}
+
+export async function deleteCoupon(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const code = str(formData, "code");
+  if (code) await getDb().delete(coupons).where(eq(coupons.code, code));
+  revalidatePath("/admin/coupons");
+  redirect("/admin/coupons");
 }
 
 // ---- Orders / CRM ----

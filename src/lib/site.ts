@@ -4,14 +4,15 @@ export const WHATSAPP_NUMBER = "917034026295"; // country code + number, no '+'
 export const WHATSAPP_DISPLAY = "+91 70340 26295";
 export const DELIVERY_PINCODE = "670643";
 
-// Store location (for the pickup option)
-export const STORE_LAT = 11.831404379922596;
-export const STORE_LNG = 75.55180389653135;
+// Store location (for the pickup option + delivery distance origin)
+export const STORE_LAT = 11.8314722; // 11°49'53.3"N
+export const STORE_LNG = 75.5517778; // 75°33'06.4"E
 export const STORE_MAPS_LINK = `https://www.google.com/maps?q=${STORE_LAT},${STORE_LNG}`;
 
 // Delivery charge rules (distance-based)
 export const DELIVERY_FREE_RADIUS_KM = 7; // free within this radius of the store
-export const DELIVERY_RATE_PER_KM = 8; // ₹ per km beyond the free radius
+export const DELIVERY_BASE_FEE = 20; // ₹ added once beyond the free radius
+export const DELIVERY_RATE_PER_KM = 5; // ₹ per extra km beyond the free radius
 export const DELIVERY_FREE_OVER_AMOUNT = 2000; // free delivery if order subtotal ≥ this
 export const DELIVERY_FLAT_FALLBACK = 30; // flat charge when no location is shared
 
@@ -69,11 +70,17 @@ export function deliveryDistanceKm(location?: string | null): number | null {
 }
 
 // Compute the delivery charge for a home-delivery order.
-// Free if subtotal ≥ threshold, or within the free radius; otherwise ₹/km beyond radius.
+// Free if subtotal ≥ threshold, or within the free radius; otherwise ₹20 base + ₹5/km beyond radius.
 export function computeDeliveryCharge(subtotal: number, location?: string | null): number {
   if (subtotal >= DELIVERY_FREE_OVER_AMOUNT) return 0;
   const km = deliveryDistanceKm(location);
   if (km === null) return DELIVERY_FLAT_FALLBACK;
   if (km <= DELIVERY_FREE_RADIUS_KM) return 0;
-  return Math.ceil(km - DELIVERY_FREE_RADIUS_KM) * DELIVERY_RATE_PER_KM;
+  return DELIVERY_BASE_FEE + Math.ceil(km - DELIVERY_FREE_RADIUS_KM) * DELIVERY_RATE_PER_KM;
+}
+
+// Normalize a phone number for matching: digits only, strip a leading 91 country code.
+export function normalizePhone(p: string): string {
+  const d = p.replace(/\D/g, "");
+  return d.length === 12 && d.startsWith("91") ? d.slice(2) : d;
 }

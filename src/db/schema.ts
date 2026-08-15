@@ -163,6 +163,8 @@ export const orders = sqliteTable(
     items: text("items", { mode: "json" }).$type<OrderItem[]>().notNull(),
     subtotal: integer("subtotal").notNull(),
     deliveryCharge: integer("delivery_charge").notNull().default(0),
+    discount: integer("discount").notNull().default(0),
+    couponCode: text("coupon_code"),
     total: integer("total").notNull(),
     paymentMethod: text("payment_method", { enum: PAYMENT_METHODS })
       .notNull()
@@ -204,10 +206,19 @@ export const settings = sqliteTable("settings", {
     .$defaultFn(() => new Date()),
 });
 
+export const coupons = sqliteTable("coupons", {
+  code: text("code").primaryKey(),
+  type: text("type", { enum: ["percent", "free_delivery"] }).notNull(),
+  value: integer("value").notNull().default(0), // percent (0-100) or 0 for free_delivery
+  phone: text("phone").notNull(), // normalized phone, no country code
+  used: integer("used", { mode: "boolean" }).notNull().default(false),
+});
+
 // ---- Inferred row types ----
 
 export type CategoryRow = typeof categories.$inferSelect;
 export type ProductRow = typeof products.$inferSelect;
 export type OfferRow = typeof offers.$inferSelect;
+export type CouponRow = typeof coupons.$inferSelect;
 export type OrderRow = typeof orders.$inferSelect;
 export type AdminRow = typeof admins.$inferSelect;

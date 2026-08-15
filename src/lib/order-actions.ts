@@ -4,6 +4,7 @@ import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders, products, type DeliveryMethod, type OrderItem } from "@/db/schema";
 import { WHATSAPP_NUMBER, STORE_MAPS_LINK, computeDeliveryCharge } from "@/lib/site";
+import { validateCoupon, markCouponUsed } from "@/lib/coupons";
 
 export type PlaceOrderInput = {
   items: { productId: string; qty: number }[];
@@ -19,6 +20,7 @@ export type PlaceOrderInput = {
   location?: string; // "lat,lng" when customer shares location
   notes?: string;
   paymentMethod: "cod" | "whatsapp" | "razorpay";
+  couponCode?: string;
   lang: "en" | "ml";
 };
 
@@ -29,6 +31,7 @@ export type PlaceOrderResult =
       orderNumber: string;
       subtotal: number;
       deliveryCharge: number;
+      discount: number;
       total: number;
       whatsappUrl: string;
       razorpayOrderId?: string;
@@ -49,6 +52,7 @@ function buildWhatsAppMessage(
   items: OrderItem[],
   subtotal: number,
   deliveryCharge: number,
+  discount: number,
   total: number,
   lang: "en" | "ml",
 ): string {
@@ -65,6 +69,7 @@ function buildWhatsAppMessage(
     items: ml ? "ഇനങ്ങൾ" : "Items",
     subtotal: ml ? "ഉപതുക" : "Subtotal",
     deliveryCharge: ml ? "ഡെലിവറി ചാർജ്" : "Delivery charge",
+    discount: ml ? "കിഴിവ്" : "Discount",
     total: ml ? "ആകെ" : "Total",
     payment: ml ? "പേയ്മെന്റ്" : "Payment",
     track: ml ? "ഓർഡർ ട്രാക്ക്" : "Track your order",
@@ -88,6 +93,7 @@ function buildWhatsAppMessage(
   }
   lines.push("");
   lines.push(`${L.subtotal}: ₹${subtotal}`);
+  if (discount > 0) lines.push(`${L.discount}: −₹${discount}`);
   if (deliveryCharge > 0) lines.push(`${L.deliveryCharge}: ₹${deliveryCharge}`);
   lines.push(`*${L.total}: ₹${total}*`);
   lines.push(`${L.payment}: ${paymentMethod.toUpperCase()}`);
@@ -142,9 +148,24 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     }
 
     const subtotal = items.reduce((n, i) => n + i.price * i.qty, 0);
-    const deliveryCharge =
+
+    // Coupon (optional): validate against the phone, apply discount / free delivery.
+    let discount = 0;
+    let freeDelivery = false;
+    let appliedCoupon: string | null = null;
+    if (input.couponCode?.trim()) {
+      const v = await validateCoupon(input.couponCode, input.phone, subtotal);
+      if (!v.ok) return { ok: false, error: v.error! };
+      discount = v.discount ?? 0;
+      freeDelivery = v.freeDelivery ?? false;
+      appliedCoupon = v.coupon!.code;
+    }
+
+    let deliveryCharge =
       deliveryMethod === "pickup" ? 0 : computeDeliveryCharge(subtotal, input.location);
-    const total = subtotal + deliveryCharge;
+    if (freeDelivery && deliveryMethod === "delivery") deliveryCharge = 0;
+
+    const total = subtotal - discount + deliveryCharge;
 
     const address = deliveryMethod === "pickup" ? "Store pickup" : input.address.trim();
     const pincode = deliveryMethod === "pickup" ? "670643" : input.pincode.trim();
@@ -169,6 +190,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       items,
       subtotal,
       deliveryCharge,
+      discount,
+      couponCode: appliedCoupon,
       total,
       paymentMethod: input.paymentMethod,
       paymentStatus: "pending",
@@ -185,6 +208,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
         .where(eq(products.id, it.productId));
     }
 
+    // Consume the coupon (single-use).
+    if (appliedCoupon) await markCouponUsed(appliedCoupon);
+
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
       buildWhatsAppMessage(
         orderNumber,
@@ -199,6 +225,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
         items,
         subtotal,
         deliveryCharge,
+        discount,
         total,
         input.lang,
       ),
@@ -241,6 +268,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       orderNumber,
       subtotal,
       deliveryCharge,
+      discount,
       total,
       whatsappUrl,
       razorpayOrderId,

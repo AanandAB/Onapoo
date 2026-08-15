@@ -21,6 +21,7 @@ export function CheckoutForm({
 }) {
   const { lang, t } = useLang();
   const { items, subtotal, clear } = useCart();
+  const ml = lang === "ml";
 
   const [form, setForm] = useState({
     name: "",
@@ -42,6 +43,10 @@ export function CheckoutForm({
   const [error, setError] = useState("");
   const [result, setResult] = useState<PlaceOrderResult | null>(null);
   const [pincodeArea, setPincodeArea] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number; freeDelivery: boolean; type: string; value: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [couponBusy, setCouponBusy] = useState(false);
 
   const lookupPincode = async () => {
     const code = form.pincode.trim();
@@ -59,9 +64,62 @@ export function CheckoutForm({
     }
   };
 
+  const applyCoupon = async () => {
+    const code = couponCode.trim();
+    if (!code) return;
+    if (!form.phone.trim()) {
+      setCoupon(null);
+      setCouponMsg(ml ? "ആദ്യം ഫോൺ നമ്പർ നൽകുക." : "Enter your phone number first.");
+      return;
+    }
+    setCouponBusy(true);
+    setCouponMsg("");
+    try {
+      const res = await fetch(
+        `/api/coupon?code=${encodeURIComponent(code)}&phone=${encodeURIComponent(form.phone)}&subtotal=${subtotal}`,
+      );
+      const data = (await res.json()) as {
+        ok?: boolean;
+        type?: string;
+        value?: number;
+        discount?: number;
+        freeDelivery?: boolean;
+        error?: string;
+      };
+      if (data.ok) {
+        setCoupon({
+          code: code.toUpperCase(),
+          discount: data.discount ?? 0,
+          freeDelivery: data.freeDelivery ?? false,
+          type: data.type ?? "percent",
+          value: data.value ?? 0,
+        });
+        setCouponMsg(
+          data.freeDelivery
+            ? ml
+              ? "സൗജന്യ ഡെലിവറി പ്രയോഗിച്ചു ✓"
+              : "Free delivery applied ✓"
+            : ml
+              ? `${data.value}% കിഴിവ് പ്രയോഗിച്ചു ✓`
+              : `${data.value}% off applied ✓`,
+        );
+      } else {
+        setCoupon(null);
+        setCouponMsg(data.error || "Invalid coupon");
+      }
+    } catch {
+      setCoupon(null);
+      setCouponMsg(ml ? "കൂപ്പൺ പരിശോധിക്കാനായില്ല." : "Could not verify coupon.");
+    } finally {
+      setCouponBusy(false);
+    }
+  };
+
   const distanceKm = method === "delivery" ? deliveryDistanceKm(location) : null;
-  const effectiveDelivery = method === "pickup" ? 0 : computeDeliveryCharge(subtotal, location);
-  const total = subtotal + effectiveDelivery;
+  const discount = coupon ? coupon.discount : 0;
+  let effectiveDelivery = method === "pickup" ? 0 : computeDeliveryCharge(subtotal, location);
+  if (coupon?.freeDelivery && method === "delivery") effectiveDelivery = 0;
+  const total = subtotal - discount + effectiveDelivery;
   const today = new Date().toISOString().slice(0, 10);
   const maxDate = ONAM_THIRUVONAM.toISOString().slice(0, 10);
 
@@ -236,6 +294,7 @@ export function CheckoutForm({
       location: method === "delivery" && location ? location : undefined,
       notes: form.notes,
       paymentMethod: payment,
+      couponCode: coupon?.code,
       lang,
     });
     if (!res.ok) {
@@ -436,6 +495,30 @@ export function CheckoutForm({
             </div>
           </div>
 
+          {/* Coupon */}
+          <div>
+            <label className="mb-2 block text-sm font-semibold">{ml ? "കൂപ്പൺ കോഡ്" : "Coupon code"}</label>
+            <div className="flex gap-2">
+              <input
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder={ml ? "കോഡ് നൽകുക" : "Enter coupon code"}
+                className={inputCls}
+              />
+              <button
+                type="button"
+                onClick={applyCoupon}
+                disabled={couponBusy}
+                className="shrink-0 rounded-xl border border-ink/15 px-4 py-3 text-sm font-semibold hover:bg-cream disabled:opacity-60"
+              >
+                {couponBusy ? "…" : ml ? "അപ്ലൈ" : "Apply"}
+              </button>
+            </div>
+            {couponMsg && (
+              <p className={`mt-1.5 text-xs ${coupon ? "text-leaf-deep" : "text-chethi"}`}>{couponMsg}</p>
+            )}
+          </div>
+
           {error && <p className="rounded-lg bg-chethi/10 px-4 py-3 text-sm text-chethi">{error}</p>}
 
           <button
@@ -469,6 +552,12 @@ export function CheckoutForm({
               <span>{labels.subtotal}</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-leaf-deep">
+                <span>{ml ? "കിഴിവ് (കൂപ്പൺ)" : "Discount (coupon)"}</span>
+                <span>−{formatPrice(discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-muted">
               <span>
                 {method === "pickup" ? labels.pickup : labels.deliveryL}

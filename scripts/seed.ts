@@ -295,7 +295,7 @@ async function main() {
       unit: p.unit,
       price: p.price,
       compareAtPrice: p.compareAtPrice ?? null,
-      stockStatus: "in_stock",
+      stock: 100,
       isFeatured: p.isFeatured,
       sortOrder: p.sortOrder,
       image: imageFor(p.slug),

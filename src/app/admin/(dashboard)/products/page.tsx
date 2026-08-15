@@ -5,7 +5,7 @@ import {
   getProductById,
 } from "@/lib/admin";
 import { saveProduct, deleteProduct } from "@/app/admin/actions";
-import { PRODUCT_UNITS, STOCK_STATUSES, type ProductRow, type CategoryRow } from "@/db/schema";
+import { PRODUCT_UNITS, LOW_STOCK_THRESHOLD, type ProductRow, type CategoryRow } from "@/db/schema";
 import { ImagePicker } from "@/components/image-picker";
 import { formatPrice } from "@/lib/site";
 
@@ -13,14 +13,20 @@ const input =
   "w-full rounded-lg border border-ink/15 bg-cream px-3 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
 const label = "mb-1 block text-sm font-semibold";
 
-function stockBadge(s: string) {
-  const map: Record<string, { t: string; c: string }> = {
-    in_stock: { t: "In stock", c: "bg-leaf/10 text-leaf" },
-    low_stock: { t: "Low stock", c: "bg-marigold/15 text-marigold-deep" },
-    out_of_stock: { t: "Out of stock", c: "bg-chethi/10 text-chethi" },
-  };
-  const b = map[s] ?? map.in_stock;
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${b.c}`}>{b.t}</span>;
+function stockBadge(stock: number) {
+  const c =
+    stock <= 0
+      ? "bg-chethi/10 text-chethi"
+      : stock <= LOW_STOCK_THRESHOLD
+        ? "bg-marigold/15 text-marigold-deep"
+        : "bg-leaf/10 text-leaf";
+  const t =
+    stock <= 0
+      ? "Out of stock"
+      : stock <= LOW_STOCK_THRESHOLD
+        ? `Low · ${stock} left`
+        : `${stock} in stock`;
+  return <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c}`}>{t}</span>;
 }
 
 export default async function ProductsPage({
@@ -94,7 +100,7 @@ export default async function ProductsPage({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">{stockBadge(p.stockStatus)}</td>
+                  <td className="px-4 py-3">{stockBadge(p.stock)}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
                       <a
@@ -212,14 +218,8 @@ function ProductForm({
           </select>
         </div>
         <div>
-          <label className={label}>Stock status</label>
-          <select name="stockStatus" defaultValue={item?.stockStatus ?? "in_stock"} className={input}>
-            {STOCK_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
+          <label className={label}>Stock quantity (0 = sold out)</label>
+          <input name="stock" type="number" min={0} defaultValue={item?.stock ?? 0} className={input} />
         </div>
         <div className="flex items-end">
           <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold">

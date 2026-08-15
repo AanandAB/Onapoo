@@ -6,6 +6,7 @@ import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
 import { useTilt } from "@/components/motion";
 import { formatPrice } from "@/lib/site";
+import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
 
 function FlowerGlyph({ className = "h-16 w-16" }: { className?: string }) {
@@ -29,7 +30,8 @@ export function ProductCard({ product }: { product: ProductRow }) {
 
   const name = lang === "ml" ? product.nameMl : product.nameEn;
   const color = lang === "ml" ? product.colorMl : product.colorEn;
-  const out = product.stockStatus === "out_of_stock";
+  const out = product.stock <= 0;
+  const low = !out && product.stock <= LOW_STOCK_THRESHOLD;
 
   const qty = items.find((i) => i.id === product.id)?.qty ?? 0;
 
@@ -81,6 +83,11 @@ export function ProductCard({ product }: { product: ProductRow }) {
         {product.isFeatured && (
           <span className="absolute right-3 top-3 rounded-full bg-gold px-2.5 py-1 text-[11px] font-bold text-cream shadow-sm">
             ★
+          </span>
+        )}
+        {low && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-marigold px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
+            Only {product.stock} left
           </span>
         )}
         {out && (
@@ -144,7 +151,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
                 value={qty}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
-                  if (!Number.isNaN(v)) setQty(product.id, Math.max(1, Math.min(999, v)));
+                  if (!Number.isNaN(v)) setQty(product.id, Math.max(1, Math.min(product.stock, v)));
                 }}
                 aria-label="Quantity"
                 className="w-12 rounded-md bg-paper text-center text-sm font-semibold focus:outline-none"
@@ -152,7 +159,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
               <span className="ml-1 text-muted">{t("in_basket")}</span>
             </span>
             <button
-              onClick={() => setQty(product.id, qty + 1)}
+              onClick={() => setQty(product.id, Math.min(product.stock, qty + 1))}
               aria-label="Increase"
               className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold text-lg font-semibold text-cream shadow-sm hover:bg-gold-deep"
             >

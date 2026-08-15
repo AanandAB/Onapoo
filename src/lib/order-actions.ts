@@ -131,6 +131,15 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       };
     });
 
+    // Stock check — block ordering if a product is sold out or short.
+    for (const it of items) {
+      const p = byId.get(it.productId)!;
+      if (p.stock < it.qty) {
+        if (p.stock <= 0) return { ok: false, error: `"${p.nameEn}" is sold out` };
+        return { ok: false, error: `Only ${p.stock} × "${p.nameEn}" left in stock` };
+      }
+    }
+
     const subtotal = items.reduce((n, i) => n + i.price * i.qty, 0);
     const settings = await getStoreSettings();
     const deliveryCharge = deliveryMethod === "pickup" ? 0 : settings.deliveryCharge;
@@ -165,6 +174,15 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       orderStatus: "new",
       notes: input.notes?.trim() || null,
     });
+
+    // Reserve stock — decrement by the ordered quantity.
+    for (const it of items) {
+      const p = byId.get(it.productId)!;
+      await db
+        .update(products)
+        .set({ stock: Math.max(0, p.stock - it.qty) })
+        .where(eq(products.id, it.productId));
+    }
 
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
       buildWhatsAppMessage(

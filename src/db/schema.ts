@@ -35,6 +35,9 @@ export const STOCK_STATUSES = [
 ] as const;
 export type StockStatus = (typeof STOCK_STATUSES)[number];
 
+// Show a "low stock" warning when the remaining quantity is at or below this.
+export const LOW_STOCK_THRESHOLD = 5;
+
 export const OFFER_TYPES = ["percent", "flat"] as const;
 export type OfferType = (typeof OFFER_TYPES)[number];
 
@@ -103,6 +106,7 @@ export const products = sqliteTable(
     stockStatus: text("stock_status", { enum: STOCK_STATUSES })
       .notNull()
       .default("in_stock"),
+    stock: integer("stock").notNull().default(0), // available quantity (0 = out of stock)
     isFeatured: integer("is_featured", { mode: "boolean" })
       .notNull()
       .default(false),

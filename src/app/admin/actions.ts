@@ -21,7 +21,6 @@ import {
   type PaymentMethod,
   type PaymentStatus,
   type ProductUnit,
-  type StockStatus,
 } from "@/db/schema";
 
 // ---- FormData helpers ----
@@ -98,7 +97,7 @@ export async function saveProduct(formData: FormData): Promise<void> {
     unit: (str(formData, "unit") ?? "bunch") as ProductUnit,
     price: num(formData, "price") ?? 0,
     compareAtPrice: num(formData, "compareAtPrice"),
-    stockStatus: (str(formData, "stockStatus") ?? "in_stock") as StockStatus,
+    stock: num(formData, "stock") ?? 0,
     isFeatured: bool(formData, "isFeatured"),
     sortOrder: num(formData, "sortOrder") ?? 0,
     image: str(formData, "image"),

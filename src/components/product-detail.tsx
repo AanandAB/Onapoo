@@ -6,6 +6,7 @@ import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
 import { formatPrice, whatsappLink, STORE_MAPS_LINK } from "@/lib/site";
+import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
 
 function FlowerGlyph({ className = "h-40 w-40" }: { className?: string }) {
@@ -37,7 +38,8 @@ export function ProductDetail({
   const name = ml ? product.nameMl : product.nameEn;
   const color = ml ? product.colorMl : product.colorEn;
   const desc = ml ? product.descriptionMl || product.descriptionEn : product.descriptionEn;
-  const out = product.stockStatus === "out_of_stock";
+  const out = product.stock <= 0;
+  const low = !out && product.stock <= LOW_STOCK_THRESHOLD;
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
@@ -130,6 +132,12 @@ export function ProductDetail({
             <span className="text-sm text-muted">/ {unitLabel(product.unit, t)}</span>
           </div>
 
+          {low && (
+            <p className="mt-3 inline-flex rounded-full bg-marigold/15 px-3 py-1 text-sm font-semibold text-marigold-deep">
+              Only {product.stock} left — order soon
+            </p>
+          )}
+
           {desc && <p className="mt-4 leading-relaxed text-muted">{desc}</p>}
 
           <div className="mt-6 flex items-center gap-3">
@@ -143,7 +151,7 @@ export function ProductDetail({
               </button>
               <span className="w-8 text-center font-semibold">{qty}</span>
               <button
-                onClick={() => setQty((q) => q + 1)}
+                onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
                 aria-label="Increase"
                 className="grid h-11 w-11 place-items-center rounded-full text-ink/70 hover:text-ink"
               >
@@ -157,7 +165,7 @@ export function ProductDetail({
               value={qty}
               onChange={(e) => {
                 const v = parseInt(e.target.value, 10);
-                if (!Number.isNaN(v)) setQty(Math.max(1, Math.min(999, v)));
+                if (!Number.isNaN(v)) setQty(Math.max(1, Math.min(product.stock, v)));
               }}
               aria-label={L.qty}
               className="h-11 w-20 rounded-full border border-ink/15 bg-paper text-center text-base font-semibold focus:border-gold focus:outline-none"

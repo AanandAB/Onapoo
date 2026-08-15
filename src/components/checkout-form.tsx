@@ -4,19 +4,17 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK } from "@/lib/site";
+import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK, computeDeliveryCharge, deliveryDistanceKm, DELIVERY_FREE_OVER_AMOUNT, DELIVERY_FREE_RADIUS_KM } from "@/lib/site";
 import { placeOrder, confirmRazorpayPayment, type PlaceOrderResult } from "@/lib/order-actions";
 
 type Status = "idle" | "submitting" | "success";
 type Method = "delivery" | "pickup";
 
 export function CheckoutForm({
-  deliveryCharge,
   razorpayEnabled,
   storeName,
   storeNameMl,
 }: {
-  deliveryCharge: number;
   razorpayEnabled: boolean;
   storeName: string;
   storeNameMl: string;
@@ -61,7 +59,8 @@ export function CheckoutForm({
     }
   };
 
-  const effectiveDelivery = method === "pickup" ? 0 : deliveryCharge;
+  const distanceKm = method === "delivery" ? deliveryDistanceKm(location) : null;
+  const effectiveDelivery = method === "pickup" ? 0 : computeDeliveryCharge(subtotal, location);
   const total = subtotal + effectiveDelivery;
   const today = new Date().toISOString().slice(0, 10);
   const maxDate = ONAM_THIRUVONAM.toISOString().slice(0, 10);
@@ -357,6 +356,18 @@ export function CheckoutForm({
                   )}
                 </div>
                 {locError && <p className="mt-2 text-xs text-chethi">{locError}</p>}
+                <p className="mt-3 text-xs text-muted">
+                  {lang === "ml"
+                    ? `${DELIVERY_FREE_RADIUS_KM} കി.മീയിൽ താഴെ സൗജന്യം · ₹${DELIVERY_FREE_OVER_AMOUNT.toLocaleString("en-IN")}-ൽ കൂടുതൽ ഓർഡറിന് സൗജന്യം`
+                    : `Free within ${DELIVERY_FREE_RADIUS_KM} km · free on orders over ₹${DELIVERY_FREE_OVER_AMOUNT.toLocaleString("en-IN")}`}
+                </p>
+                {distanceKm !== null && (
+                  <p className="mt-1 text-xs font-semibold text-leaf">
+                    {lang === "ml"
+                      ? `📍 ${distanceKm.toFixed(1)} കി.മീ അകലെ — ${effectiveDelivery > 0 ? `ഡെലിവറി ${formatPrice(effectiveDelivery)}` : "സൗജന്യ ഡെലിവറി"}`
+                      : `📍 ${distanceKm.toFixed(1)} km away — ${effectiveDelivery > 0 ? `delivery ${formatPrice(effectiveDelivery)}` : "free delivery"}`}
+                  </p>
+                )}
               </div>
             </>
           ) : (
@@ -451,7 +462,12 @@ export function CheckoutForm({
               <span>{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between text-muted">
-              <span>{method === "pickup" ? labels.pickup : labels.deliveryL}</span>
+              <span>
+                {method === "pickup" ? labels.pickup : labels.deliveryL}
+                {method === "delivery" && distanceKm !== null && (
+                  <span className="block text-xs text-muted/70">{distanceKm.toFixed(1)} km away</span>
+                )}
+              </span>
               <span>{effectiveDelivery > 0 ? formatPrice(effectiveDelivery) : labels.free}</span>
             </div>
             <div className="flex justify-between pt-2 font-display text-lg font-semibold">

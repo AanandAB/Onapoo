@@ -11,7 +11,6 @@ export default async function CheckoutPage() {
 
   return (
     <CheckoutForm
-      deliveryCharge={settings.deliveryCharge}
       razorpayEnabled={razorpayEnabled}
       storeName={settings.storeName}
       storeNameMl={settings.storeNameMl}

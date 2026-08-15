@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProductBySlug, getStoreSettings } from "@/lib/queries";
+import { getProductBySlug } from "@/lib/queries";
 import { ProductDetail } from "@/components/product-detail";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +27,5 @@ export default async function ProductPage({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) notFound();
-  const settings = await getStoreSettings();
-  return <ProductDetail product={product} deliveryCharge={settings.deliveryCharge} />;
+  return <ProductDetail product={product} />;
 }

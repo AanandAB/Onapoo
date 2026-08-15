@@ -3,8 +3,7 @@
 import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders, products, type DeliveryMethod, type OrderItem } from "@/db/schema";
-import { getStoreSettings } from "@/lib/queries";
-import { WHATSAPP_NUMBER, STORE_MAPS_LINK } from "@/lib/site";
+import { WHATSAPP_NUMBER, STORE_MAPS_LINK, computeDeliveryCharge } from "@/lib/site";
 
 export type PlaceOrderInput = {
   items: { productId: string; qty: number }[];
@@ -141,8 +140,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     }
 
     const subtotal = items.reduce((n, i) => n + i.price * i.qty, 0);
-    const settings = await getStoreSettings();
-    const deliveryCharge = deliveryMethod === "pickup" ? 0 : settings.deliveryCharge;
+    const deliveryCharge =
+      deliveryMethod === "pickup" ? 0 : computeDeliveryCharge(subtotal, input.location);
     const total = subtotal + deliveryCharge;
 
     const address = deliveryMethod === "pickup" ? "Store pickup" : input.address.trim();

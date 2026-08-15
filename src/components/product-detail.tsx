@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, whatsappLink, STORE_MAPS_LINK } from "@/lib/site";
+import { formatPrice, whatsappLink, STORE_MAPS_LINK, DELIVERY_FREE_RADIUS_KM, DELIVERY_FREE_OVER_AMOUNT } from "@/lib/site";
 import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
 
@@ -24,10 +24,8 @@ function FlowerGlyph({ className = "h-40 w-40" }: { className?: string }) {
 
 export function ProductDetail({
   product,
-  deliveryCharge,
 }: {
   product: ProductRow;
-  deliveryCharge: number;
 }) {
   const { lang, t } = useLang();
   const { add } = useCart();
@@ -64,7 +62,7 @@ export function ProductDetail({
         addToCart: "കൊട്ടയിൽ ചേർക്കൂ",
         orderWa: "WhatsApp-ൽ ഓർഡർ ചെയ്യൂ",
         delivery: "ഡെലിവറി",
-        deliveryNote: `ഹോം ഡെലിവറി ₹${deliveryCharge} · കടയിൽ നിന്ന് എടുക്കാം സൗജന്യം`,
+        deliveryNote: `${DELIVERY_FREE_RADIUS_KM} കി.മീയിൽ താഴെ സൗജന്യം · ₹${DELIVERY_FREE_OVER_AMOUNT}-ൽ കൂടുതൽ ഓർഡറിന് സൗജന്യം`,
         qty: "എണ്ണം",
         out: "തീർന്നു",
         pickUp: "കടയിൽ നിന്ന് എടുക്കാം",
@@ -74,7 +72,7 @@ export function ProductDetail({
         addToCart: "Add to cart",
         orderWa: "Order on WhatsApp",
         delivery: "Delivery",
-        deliveryNote: `Home delivery ₹${deliveryCharge} · free store pickup`,
+        deliveryNote: `Free within ${DELIVERY_FREE_RADIUS_KM} km · free over ₹${DELIVERY_FREE_OVER_AMOUNT} · free store pickup`,
         qty: "Qty",
         out: "Sold out",
         pickUp: "Store pickup",

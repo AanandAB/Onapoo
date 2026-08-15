@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Flower2, Sparkles, ShoppingCart } from "lucide-react";
+import { Flower2, Sparkles, ShoppingCart, PackageSearch } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
 import { whatsappLink } from "@/lib/site";
@@ -39,7 +39,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/25 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-      <div className="grid h-16 grid-cols-4">
+      <div className="grid h-16 grid-cols-5">
         <a href="#shop" className={itemCls}>
           <Flower2 className={`h-6 w-6 ${section === "shop" ? "text-gold-deep" : "text-ink/55"}`} />
           <span className={section === "shop" ? "font-semibold text-gold-deep" : "text-ink/60"}>
@@ -51,6 +51,10 @@ export function BottomNav() {
           <span className={section === "how" ? "font-semibold text-gold-deep" : "text-ink/60"}>
             {lang === "ml" ? "എങ്ങനെ" : "How"}
           </span>
+        </a>
+        <a href="/track" className={itemCls}>
+          <PackageSearch className="h-6 w-6 text-ink/55" />
+          <span className="text-ink/60">{lang === "ml" ? "ട്രാക്ക്" : "Track"}</span>
         </a>
         <button onClick={() => setOpen(true)} className={itemCls} aria-label="Open cart">
           <span className="relative">

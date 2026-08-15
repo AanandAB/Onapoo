@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { asc, count, desc, eq, like, or } from "drizzle-orm";
 import { COOKIE_NAME, verifySessionToken, type SessionPayload } from "@/lib/auth";
 import { getDb } from "@/db";
+import { parseLocation, geocodePincode } from "@/lib/geocode";
 import {
   categories,
   coupons,
@@ -221,6 +222,106 @@ export async function listAllOrders() {
   return db.select().from(orders).orderBy(desc(orders.createdAt));
 }
 
+export type MapOrder = {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  address: string;
+  pincode: string;
+  area: string | null;
+  district: string | null;
+  orderStatus: OrderStatus;
+  deliveryDate: string | null;
+  phone: string;
+  lat: number;
+  lng: number;
+  approximate: boolean;
+};
+
+// Delivery orders still needing delivery (excl. cancelled + delivered), with
+// coordinates resolved from shared location (exact) or pincode geocode (approximate).
+export async function getDeliveryMapOrders(): Promise<{
+  plotted: MapOrder[];
+  unplotted: {
+    orderNumber: string;
+    customerName: string;
+    address: string;
+    pincode: string;
+    orderStatus: OrderStatus;
+  }[];
+}> {
+  const db = getDb();
+  const all = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.deliveryMethod, "delivery"))
+    .all();
+
+  const active = all.filter(
+    (o) => o.orderStatus !== "cancelled" && o.orderStatus !== "delivered",
+  );
+
+  const plotted: MapOrder[] = [];
+  const unplotted: {
+    orderNumber: string;
+    customerName: string;
+    address: string;
+    pincode: string;
+    orderStatus: OrderStatus;
+  }[] = [];
+
+  for (const o of active) {
+    let lat: number | null = null;
+    let lng: number | null = null;
+    let approximate = false;
+
+    if (o.location) {
+      const parsed = parseLocation(o.location);
+      if (parsed) {
+        lat = parsed.lat;
+        lng = parsed.lng;
+      }
+    }
+    if (lat === null && lng === null && o.pincode) {
+      const geo = await geocodePincode(o.pincode);
+      if (geo) {
+        lat = geo.lat;
+        lng = geo.lng;
+        approximate = true;
+      }
+    }
+
+    if (lat === null || lng === null) {
+      unplotted.push({
+        orderNumber: o.orderNumber,
+        customerName: o.customerName,
+        address: o.address,
+        pincode: o.pincode,
+        orderStatus: o.orderStatus,
+      });
+      continue;
+    }
+
+    plotted.push({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      customerName: o.customerName,
+      address: o.address,
+      pincode: o.pincode,
+      area: o.area,
+      district: o.district,
+      orderStatus: o.orderStatus,
+      deliveryDate: o.deliveryDate,
+      phone: o.phone,
+      lat,
+      lng,
+      approximate,
+    });
+  }
+
+  return { plotted, unplotted };
+}
+
 // ---- Reports ----
 
 export async function getReports() {
@@ -251,13 +352,13 @@ export async function getReports() {
     });
     byDay.push({
       date: d.toISOString().slice(0, 10),
-      count: rows.length,
+      count: rows.filter((o) => o.orderStatus !== "cancelled").length,
       revenue: rows.filter((o) => o.orderStatus !== "cancelled").reduce((s, o) => s + o.total, 0),
     });
   }
 
   const productMap = new Map<string, { name: string; qty: number; revenue: number }>();
-  for (const o of all) {
+  for (const o of active) {
     for (const it of o.items) {
       const cur = productMap.get(it.name) ?? { name: it.name, qty: 0, revenue: 0 };
       cur.qty += it.qty;
@@ -269,18 +370,18 @@ export async function getReports() {
 
   const byPayment = PAYMENT_METHODS.map((m) => ({
     method: m,
-    count: all.filter((o) => o.paymentMethod === m).length,
+    count: active.filter((o) => o.paymentMethod === m).length,
   })).filter((x) => x.count > 0);
 
   const byDelivery = DELIVERY_METHODS.map((m) => ({
     method: m,
-    count: all.filter((o) => o.deliveryMethod === m).length,
+    count: active.filter((o) => o.deliveryMethod === m).length,
   })).filter((x) => x.count > 0);
 
   return {
-    totalOrders: all.length,
+    totalOrders: active.length,
     totalRevenue,
-    todayOrders: todayRows.length,
+    todayOrders: todayRows.filter((o) => o.orderStatus !== "cancelled").length,
     todayRevenue,
     pending,
     avgOrder,

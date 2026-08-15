@@ -6,6 +6,7 @@ import { getDb } from "@/db";
 import {
   categories,
   coupons,
+  expenses,
   offers,
   orders,
   products,
@@ -46,6 +47,80 @@ export async function listProductsAdmin() {
 export async function listCoupons() {
   const db = getDb();
   return db.select().from(coupons).orderBy(asc(coupons.used), asc(coupons.code));
+}
+
+export async function listExpenses() {
+  const db = getDb();
+  return db.select().from(expenses).orderBy(desc(expenses.createdAt));
+}
+
+export type ProfitReport = {
+  revenue: number;
+  cogs: number;
+  grossProfit: number;
+  totalExpenses: number;
+  netProfit: number;
+  ordersCount: number;
+  daily: { date: string; revenue: number; cost: number; profit: number }[];
+};
+
+// Revenue = subtotal − coupon discount (delivery fees are pass-through, not profit).
+// COGS    = Σ (product costPrice × qty sold) using the CURRENT cost price.
+// Net     = (revenue − COGS) − additional expenses.
+export async function getProfitReport(): Promise<ProfitReport> {
+  const db = getDb();
+  const [allOrders, allProducts, allExpenses] = await Promise.all([
+    db.select().from(orders).all(),
+    db.select().from(products).all(),
+    db.select().from(expenses).all(),
+  ]);
+
+  const costById = new Map(allProducts.map((p) => [p.id, p.costPrice]));
+
+  let revenue = 0;
+  let cogs = 0;
+  const dayMap = new Map<string, { revenue: number; cost: number; profit: number }>();
+
+  for (const o of allOrders) {
+    if (o.orderStatus === "cancelled") continue;
+    const rev = o.subtotal - (o.discount ?? 0);
+    let cost = 0;
+    for (const it of o.items ?? []) {
+      cost += (costById.get(it.productId) ?? 0) * it.qty;
+    }
+    revenue += rev;
+    cogs += cost;
+
+    const day = new Date(o.createdAt).toISOString().slice(0, 10);
+    const d = dayMap.get(day) ?? { revenue: 0, cost: 0, profit: 0 };
+    d.revenue += rev;
+    d.cost += cost;
+    d.profit += rev - cost;
+    dayMap.set(day, d);
+  }
+
+  // Last 14 days (fill gaps with zeroes).
+  const daily: { date: string; revenue: number; cost: number; profit: number }[] = [];
+  const today = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const dt = new Date(today);
+    dt.setDate(dt.getDate() - i);
+    const key = dt.toISOString().slice(0, 10);
+    const d = dayMap.get(key);
+    daily.push({ date: key, revenue: d?.revenue ?? 0, cost: d?.cost ?? 0, profit: d?.profit ?? 0 });
+  }
+
+  const totalExpenses = allExpenses.reduce((s, e) => s + e.amount, 0);
+
+  return {
+    revenue,
+    cogs,
+    grossProfit: revenue - cogs,
+    totalExpenses,
+    netProfit: revenue - cogs - totalExpenses,
+    ordersCount: allOrders.filter((o) => o.orderStatus !== "cancelled").length,
+    daily,
+  };
 }
 
 export async function getProductById(id: string) {

@@ -1,5 +1,6 @@
 import { requireAdmin, listCoupons } from "@/lib/admin";
 import { deleteCoupon } from "@/app/admin/actions";
+import { CouponGenerator } from "@/components/coupon-generator";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,13 @@ export default async function CouponsPage() {
         </p>
       </div>
 
+      <CouponGenerator />
+
+      <h2 className="mb-3 mt-8 font-display text-base font-semibold">All coupons</h2>
+
       {coupons.length === 0 ? (
         <div className="rounded-xl border border-ink/10 bg-paper p-8 text-center">
-          <p className="text-sm text-muted">No coupons yet.</p>
-          <p className="mt-2 text-xs text-muted">
-            Generate them with the desktop Coupon Generator (coupon_generator.py), or insert into
-            the coupons table directly.
-          </p>
+          <p className="text-sm text-muted">No coupons yet — generate one above.</p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-ink/10 bg-paper">

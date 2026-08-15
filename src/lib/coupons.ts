@@ -9,6 +9,16 @@ export function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
 }
 
+// Ambiguous characters removed (no 0/O/1/I/L) — matches the Python generator.
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+export function generateCouponCode(length = 8): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  let out = "";
+  for (let i = 0; i < length; i++) out += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
+  return out;
+}
+
 export async function getCoupon(code: string): Promise<CouponRow | null> {
   const db = getDb();
   const rows = await db

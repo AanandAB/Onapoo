@@ -7,10 +7,13 @@ import { revalidatePath } from "next/cache";
 import { COOKIE_NAME, createSessionToken, verifyPassword } from "@/lib/auth";
 import { requireAdmin } from "@/lib/admin";
 import { getStoreSettings } from "@/lib/queries";
+import { normalizePhone } from "@/lib/site";
+import { generateCouponCode } from "@/lib/coupons";
 import { getDb } from "@/db";
 import {
   admins,
   coupons,
+  expenses,
   offers,
   orders,
   products,
@@ -107,6 +110,7 @@ export async function saveProduct(formData: FormData): Promise<void> {
     descriptionMl: str(formData, "descriptionMl"),
     unit: (str(formData, "unit") ?? "bunch") as ProductUnit,
     price: num(formData, "price") ?? 0,
+    costPrice: num(formData, "costPrice") ?? 0,
     compareAtPrice: num(formData, "compareAtPrice"),
     stock: num(formData, "stock") ?? 0,
     isFeatured: bool(formData, "isFeatured"),
@@ -178,6 +182,56 @@ export async function deleteCoupon(formData: FormData): Promise<void> {
   if (code) await getDb().delete(coupons).where(eq(coupons.code, code));
   revalidatePath("/admin/coupons");
   redirect("/admin/coupons");
+}
+
+// Generate a coupon from the admin (returns the code so the UI can show it).
+export async function createCoupon(
+  formData: FormData,
+): Promise<{ ok: true; code: string } | { ok: false; error: string }> {
+  await requireAdmin();
+  const db = getDb();
+  const phone = normalizePhone(str(formData, "phone") ?? "");
+  const type = (str(formData, "type") ?? "percent") as "percent" | "free_delivery";
+  const value = num(formData, "value") ?? 0;
+
+  if (phone.length < 8) return { ok: false, error: "Enter a valid phone number (8+ digits)." };
+  if (type === "percent" && (value < 1 || value > 100)) {
+    return { ok: false, error: "Discount must be between 1 and 100%." };
+  }
+
+  const code = generateCouponCode();
+  await db.insert(coupons).values({
+    code,
+    type,
+    value: type === "percent" ? value : 0,
+    phone,
+    used: false,
+  });
+  revalidatePath("/admin/coupons");
+  return { ok: true, code };
+}
+
+// ---- Expenses / Profit ---- //
+
+export async function addExpense(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const db = getDb();
+  const label = str(formData, "label");
+  const amount = num(formData, "amount");
+  if (label && amount != null && amount > 0) {
+    await db.insert(expenses).values({ id: crypto.randomUUID(), label, amount });
+  }
+  revalidatePath("/admin/profit");
+  redirect("/admin/profit");
+}
+
+export async function deleteExpense(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const db = getDb();
+  const id = str(formData, "id");
+  if (id) await db.delete(expenses).where(eq(expenses.id, id));
+  revalidatePath("/admin/profit");
+  redirect("/admin/profit");
 }
 
 // ---- Orders / CRM ----

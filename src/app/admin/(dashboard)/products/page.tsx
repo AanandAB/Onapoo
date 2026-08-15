@@ -200,6 +200,10 @@ function ProductForm({
           <input name="price" type="number" min={0} defaultValue={item?.price ?? ""} required className={input} />
         </div>
         <div>
+          <label className={label}>Cost price (₹) — your buying cost</label>
+          <input name="costPrice" type="number" min={0} defaultValue={item?.costPrice ?? 0} className={input} />
+        </div>
+        <div>
           <label className={label}>Compare-at price (₹)</label>
           <input name="compareAtPrice" type="number" min={0} defaultValue={item?.compareAtPrice ?? ""} className={input} />
         </div>

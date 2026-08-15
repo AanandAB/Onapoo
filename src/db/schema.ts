@@ -102,7 +102,8 @@ export const products = sqliteTable(
     descriptionEn: text("description_en"),
     descriptionMl: text("description_ml"),
     unit: text("unit", { enum: PRODUCT_UNITS }).notNull().default("bunch"),
-    price: integer("price").notNull(), // rupees (integer)
+    price: integer("price").notNull(), // rupees (integer) — selling price
+    costPrice: integer("cost_price").notNull().default(0), // rupees — what the shop pays per unit (for profit tracking)
     compareAtPrice: integer("compare_at_price"), // strike-through "was" price
     stockStatus: text("stock_status", { enum: STOCK_STATUSES })
       .notNull()
@@ -214,11 +215,21 @@ export const coupons = sqliteTable("coupons", {
   used: integer("used", { mode: "boolean" }).notNull().default(false),
 });
 
+export const expenses = sqliteTable("expenses", {
+  id: pk(),
+  label: text("label").notNull(),
+  amount: integer("amount").notNull(), // rupees (integer)
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // ---- Inferred row types ----
 
 export type CategoryRow = typeof categories.$inferSelect;
 export type ProductRow = typeof products.$inferSelect;
 export type OfferRow = typeof offers.$inferSelect;
 export type CouponRow = typeof coupons.$inferSelect;
+export type ExpenseRow = typeof expenses.$inferSelect;
 export type OrderRow = typeof orders.$inferSelect;
 export type AdminRow = typeof admins.$inferSelect;

@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/site";
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
   confirmed: "Confirmed",
+  packed: "Packed",
   out_for_delivery: "Out for delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",

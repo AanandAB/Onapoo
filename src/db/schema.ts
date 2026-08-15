@@ -50,6 +50,7 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export const ORDER_STATUSES = [
   "new",
   "confirmed",
+  "packed",
   "out_for_delivery",
   "delivered",
   "cancelled",

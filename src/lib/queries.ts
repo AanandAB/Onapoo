@@ -1,6 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { categories, products, settings } from "@/db/schema";
+import { categories, products, settings, orders, type OrderRow } from "@/db/schema";
 
 export type ProductRow = typeof products.$inferSelect;
 export type CategoryRow = typeof categories.$inferSelect;
@@ -51,4 +51,18 @@ export async function getStoreSettings() {
     announcementEn: s.announcement_en ?? "",
     announcementMl: s.announcement_ml ?? "",
   };
+}
+
+// Public order-tracking lookup: order number + phone must BOTH match.
+// Returns null if not found or the phone doesn't match (doesn't reveal which).
+export async function findOrderForTracking(
+  orderNumber: string,
+  phone: string,
+): Promise<OrderRow | null> {
+  const db = getDb();
+  const rows = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
+  const o = rows[0];
+  if (!o) return null;
+  const norm = (s: string) => s.replace(/\D/g, "");
+  return norm(o.phone) === norm(phone) ? o : null;
 }

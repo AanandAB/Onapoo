@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/site";
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
   confirmed: "Confirmed",
+  packed: "Packed",
   out_for_delivery: "Out for delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",
@@ -14,6 +15,7 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_COLOR: Record<string, string> = {
   new: "bg-marigold/15 text-marigold-deep",
   confirmed: "bg-leaf/10 text-leaf",
+  packed: "bg-gold/15 text-gold-deep",
   out_for_delivery: "bg-gold/15 text-gold-deep",
   delivered: "bg-leaf/15 text-leaf-deep",
   cancelled: "bg-chethi/10 text-chethi",

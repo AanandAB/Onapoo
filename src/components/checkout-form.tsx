@@ -102,6 +102,7 @@ export function CheckoutForm({
             successTitle: "ഓർഡർ സ്വീകരിച്ചു! 🌼",
             successSub: "നിങ്ങളുടെ ഓർഡർ ഞങ്ങൾക്ക് ലഭിച്ചു. സ്ഥിരീകരിക്കാൻ WhatsApp തുറക്കുക.",
             openWa: "WhatsApp തുറക്കുക",
+            track: "ഓർഡർ ട്രാക്ക് ചെയ്യുക",
             total: "ആകെ",
             deliveryL: "ഡെലിവറി",
             subtotal: "ഉപതുക",
@@ -138,6 +139,7 @@ export function CheckoutForm({
             successTitle: "Order received! 🌼",
             successSub: "Your order is with us. Open WhatsApp to confirm.",
             openWa: "Open WhatsApp",
+            track: "Track your order",
             total: "Total",
             deliveryL: "Delivery",
             subtotal: "Subtotal",
@@ -190,6 +192,12 @@ export function CheckoutForm({
           </svg>
           {labels.openWa}
         </a>
+        <Link
+          href={`/track?order=${encodeURIComponent(result.orderNumber)}`}
+          className="mt-3 inline-flex items-center justify-center rounded-full border border-ink/15 px-6 py-3 text-sm font-semibold hover:bg-cream"
+        >
+          {labels.track}
+        </Link>
         <div className="mt-6">
           <Link href="/" className="text-sm text-muted underline">
             {labels.backShop}

@@ -67,6 +67,7 @@ function buildWhatsAppMessage(
     deliveryCharge: ml ? "ഡെലിവറി ചാർജ്" : "Delivery charge",
     total: ml ? "ആകെ" : "Total",
     payment: ml ? "പേയ്മെന്റ്" : "Payment",
+    track: ml ? "ഓർഡർ ട്രാക്ക്" : "Track your order",
     footer: ml ? "ഓണപ്പൂക്കൾ വെബ്സൈറ്റിലൂടെ" : "via Onapookkal website",
   };
   const lines: string[] = [];
@@ -90,6 +91,7 @@ function buildWhatsAppMessage(
   if (deliveryCharge > 0) lines.push(`${L.deliveryCharge}: ₹${deliveryCharge}`);
   lines.push(`*${L.total}: ₹${total}*`);
   lines.push(`${L.payment}: ${paymentMethod.toUpperCase()}`);
+  lines.push(`${L.track}: https://onapookkal.store/track?order=${encodeURIComponent(orderNumber)}`);
   lines.push("");
   lines.push(`_${L.footer}_`);
   return lines.join("\n");

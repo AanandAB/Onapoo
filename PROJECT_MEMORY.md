@@ -75,8 +75,8 @@ npx wrangler deploy                 # deploy to Cloudflare
 - Public repo: never commit secrets, tokens, PBKDF2 hashes, etc.
 
 ## 10. Git / current state (session 2026-08-16)
-- Latest commit: `d8ee68f` (PROJECT_MEMORY/AGENTS pointer update). Working tree has **uncommitted** changes (pending-work batch): privacy officer, cost-price snapshot, restock-on-cancel, storefront search, location-required checkout.
-- **Do NOT push without explicit approval.** Deploy = OpenNext build + `wrangler deploy` (also needs approval).
+- Onam feature batch (`28df963`) committed and deployed (Version ID `592774ad`), pushed to origin/main.
+- **Do NOT push without explicit approval.** Deploy = `npm run deploy` (opennextjs build + deploy).
 
 ## 11. Pending / candidate future work
 - Auto-send receipt (automated) via WhatsApp: assessed **OpenWA** (feasible but unofficial/ban risk); official Cloud API is the safe-but-paid path. Manual "Send receipt" button already added — admin taps Send from own device.

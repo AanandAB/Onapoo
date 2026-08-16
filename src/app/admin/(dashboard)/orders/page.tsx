@@ -3,6 +3,7 @@ import { updateOrderStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES, DELIVERY_METHODS, type OrderRow } from "@/db/schema";
 import { formatPrice } from "@/lib/site";
 import { receiptWaLink } from "@/lib/receipt";
+import { ReceiptPdfButton, type ReceiptOrder } from "@/components/receipt-pdf";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
@@ -53,6 +54,28 @@ function fmtDelivDate(s: string | null) {
   if (!s) return "—";
   const d = new Date(s + "T00:00:00");
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", weekday: "short" });
+}
+
+function toPdfOrder(o: OrderRow): ReceiptOrder {
+  return {
+    orderNumber: o.orderNumber,
+    customerName: o.customerName,
+    phone: o.phone,
+    address: o.address,
+    pincode: o.pincode,
+    landmark: o.landmark,
+    deliveryMethod: o.deliveryMethod,
+    deliveryDate: o.deliveryDate,
+    createdAt: o.createdAt.toISOString(),
+    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, qty: it.qty, price: it.price })),
+    subtotal: o.subtotal,
+    discount: o.discount,
+    deliveryCharge: o.deliveryCharge,
+    total: o.total,
+    couponCode: o.couponCode,
+    paymentMethod: o.paymentMethod,
+    paymentStatus: o.paymentStatus,
+  };
 }
 
 export default async function OrdersPage({
@@ -274,6 +297,12 @@ export default async function OrdersPage({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap justify-end gap-2">
+                      <ReceiptPdfButton
+                        order={toPdfOrder(o)}
+                        label="PDF bill"
+                        title="Download PDF bill"
+                        className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-cream hover:bg-gold-deep"
+                      />
                       <a
                         href={receiptWaLink(o)}
                         target="_blank"

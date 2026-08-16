@@ -143,10 +143,12 @@ export function ReceiptPdfButton({
   order,
   label = "Download PDF",
   className = "",
+  title,
 }: {
   order: ReceiptOrder;
   label?: string;
   className?: string;
+  title?: string;
 }) {
   const download = async () => {
     // Dynamic imports so the PDF tooling only loads when the admin actually
@@ -204,7 +206,7 @@ export function ReceiptPdfButton({
   };
 
   return (
-    <button type="button" onClick={download} className={className}>
+    <button type="button" onClick={download} className={className} title={title}>
       ⬇ {label}
     </button>
   );

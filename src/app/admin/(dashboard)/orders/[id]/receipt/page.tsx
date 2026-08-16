@@ -24,7 +24,7 @@ export default async function ReceiptPage({
     deliveryMethod: o.deliveryMethod,
     deliveryDate: o.deliveryDate,
     createdAt: o.createdAt.toISOString(),
-    items: o.items.map((it) => ({ name: it.name, qty: it.qty, price: it.price })),
+    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, qty: it.qty, price: it.price })),
     subtotal: o.subtotal,
     discount: o.discount,
     deliveryCharge: o.deliveryCharge,

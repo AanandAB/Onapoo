@@ -40,13 +40,13 @@ export function BottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/25 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
       <div className="grid h-16 grid-cols-5">
-        <a href="#shop" className={itemCls}>
+        <a href="/#shop" className={itemCls}>
           <Flower2 className={`h-6 w-6 ${section === "shop" ? "text-gold-deep" : "text-ink/55"}`} />
           <span className={section === "shop" ? "font-semibold text-gold-deep" : "text-ink/60"}>
             {lang === "ml" ? "പൂക്കൾ" : "Shop"}
           </span>
         </a>
-        <a href="#how" className={itemCls}>
+        <a href="/#how" className={itemCls}>
           <Sparkles className={`h-6 w-6 ${section === "how" ? "text-gold-deep" : "text-ink/55"}`} />
           <span className={section === "how" ? "font-semibold text-gold-deep" : "text-ink/60"}>
             {lang === "ml" ? "എങ്ങനെ" : "How"}

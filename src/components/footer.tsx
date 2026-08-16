@@ -42,10 +42,10 @@ export function Footer({ storeName, storeNameMl }: { storeName: string; storeNam
             </p>
             <ul className="space-y-2 text-sm text-cream/75">
               <li>
-                <a href="#shop" className={linkCls}>{ml ? "എല്ലാ പൂക്കളും" : "All flowers"}</a>
+                <a href="/#shop" className={linkCls}>{ml ? "എല്ലാ പൂക്കളും" : "All flowers"}</a>
               </li>
               <li>
-                <a href="#how" className={linkCls}>{ml ? "എങ്ങനെ പ്രവർത്തിക്കുന്നു" : "How it works"}</a>
+                <a href="/#how" className={linkCls}>{ml ? "എങ്ങനെ പ്രവർത്തിക്കുന്നു" : "How it works"}</a>
               </li>
             </ul>
           </div>

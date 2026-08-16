@@ -135,6 +135,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
         unit: p.unit,
         qty: i.qty,
         price: p.price,
+        costPrice: p.costPrice,
       };
     });
 

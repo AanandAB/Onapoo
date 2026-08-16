@@ -49,9 +49,13 @@ npx wrangler deploy                 # deploy to Cloudflare
 - **Profit & Loss** (`lib/admin.ts` `getProfitReport`, `components/profit-report.tsx`, `/admin/profit`): Revenue = subtotal − coupon discount; COGS = Σ(costPrice × qty); Gross = revenue − COGS; Net = gross − expenses. Cancelled orders excluded. Animated count-up cards + per-day bar chart + cumulative line chart.
 - **Delivery map** (`lib/geocode.ts`, `lib/admin.ts` `getDeliveryMapOrders`, `components/delivery-map.tsx`, `/admin/map`): Leaflet + OSM. Plots pending delivery orders (excl. cancelled/delivered). Exact pin from shared location, else pincode geocoded via Nominatim (cached).
 - **Order tracking** (`/track`, `components/track-view.tsx`): customer enters order # + phone → status timeline + printable receipt (Print/Save button + `@media print` CSS).
-- **Dynamic inventory**: server-side stock check + decrement in `placeOrder`.
+- **Manual receipt send** (`lib/receipt.ts`): admin "Send receipt" button (orders list row + order detail header) opens a pre-filled WhatsApp message with a full itemized receipt; admin taps Send from their own device (no automation, no ban risk).
+- **Dynamic inventory**: server-side stock check + decrement in `placeOrder`; cancelling an order in admin restocks its items (guarded against double-restock; manual orders skipped).
+- **Cost-price snapshot**: `orders.items[]` carry a per-item `costPrice` (frozen at order time). `getProfitReport` uses the snapshot, falling back to live `products.costPrice` only for pre-existing orders.
+- **Storefront search**: catalog search box filters by name/colour (EN + ML).
+- **Location required**: checkout requires a shared location for home delivery (prominent "Required" styling) so the delivery map gets exact pins.
 - **Multi-image gallery**: `products.images` JSON.
-- **Privacy policy** (`/privacy`): Indian law (IT Act 2000 + DPDP Act 2023), footer link. Grievance Officer email is a placeholder (`onapookkal@gmail.com`) — owner to confirm.
+- **Privacy policy** (`/privacy`): Indian law (IT Act 2000 + DPDP Act 2023), footer link. Grievance Officer: Aanand AB, aanandab44@gmail.com.
 
 ## 7. Constants (in `lib/site.ts`)
 - Store coordinate (delivery origin): **`11.8314722, 75.5517778`** = `11°49'53.3"N 75°33'06.4"E`. (Note: an older pickup coord `11.831404379922596, 75.55180389653135` appears in `STORE_MAPS_LINK` history — the delivery-origin is the new one above.)
@@ -70,14 +74,12 @@ npx wrangler deploy                 # deploy to Cloudflare
 - Admin password is **NOT in any repo file** (was exposed once → changed in D1). Username `admin`. Do not write the password anywhere.
 - Public repo: never commit secrets, tokens, PBKDF2 hashes, etc.
 
-## 10. Git / current state (end of session 2026-08-16)
-- Latest commit: `bc63978` (privacy policy, printable receipt, per-day + cumulative charts).
-- All features through the P&L/receipt/map/privacy work are built, deployed, and pushed.
-- **Do NOT push without explicit approval.**
+## 10. Git / current state (session 2026-08-16)
+- Latest commit: `d8ee68f` (PROJECT_MEMORY/AGENTS pointer update). Working tree has **uncommitted** changes (pending-work batch): privacy officer, cost-price snapshot, restock-on-cancel, storefront search, location-required checkout.
+- **Do NOT push without explicit approval.** Deploy = OpenNext build + `wrangler deploy` (also needs approval).
 
 ## 11. Pending / candidate future work
-- Confirm the real Grievance Officer email + name in `/privacy` (currently placeholder).
-- Auto-send receipt via WhatsApp Business API or email (needs paid credentials; currently receipt is self-serve via /track).
-- Make "Share my location" at checkout more prominent/required for better delivery-map accuracy.
-- Cost-price snapshot per order (freeze profit at order time; currently uses live costPrice).
-- Restock on admin cancel; admin Settings page for delivery thresholds; R2/proper image upload; search box; UPI/Razorpay keys.
+- Auto-send receipt (automated) via WhatsApp: assessed **OpenWA** (feasible but unofficial/ban risk); official Cloud API is the safe-but-paid path. Manual "Send receipt" button already added — admin taps Send from own device.
+- UPI/Razorpay keys (deferred by owner — later).
+- Admin Settings page for delivery thresholds (deferred — later).
+- R2 / proper image upload (blocked: R2 account disabled — options noted in session).

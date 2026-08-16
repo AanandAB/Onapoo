@@ -87,7 +87,9 @@ export async function getProfitReport(): Promise<ProfitReport> {
     const rev = o.subtotal - (o.discount ?? 0);
     let cost = 0;
     for (const it of o.items ?? []) {
-      cost += (costById.get(it.productId) ?? 0) * it.qty;
+      // Use the per-item cost snapshot when present (orders placed after the
+      // snapshot feature), otherwise fall back to the current product cost.
+      cost += (it.costPrice ?? costById.get(it.productId) ?? 0) * it.qty;
     }
     revenue += rev;
     cogs += cost;

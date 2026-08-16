@@ -279,6 +279,14 @@ export function CheckoutForm({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (method === "delivery" && !location) {
+      setError(
+        ml
+          ? "ഡെലിവറിക്കായി നിങ്ങളുടെ ലൊക്കേഷൻ അയയ്ക്കുക — കൃത്യമായ ഡെലിവറിക്ക് ഇത് ആവശ്യമാണ് (അല്ലെങ്കിൽ സ്റ്റോർ പിക്കപ്പ് തിരഞ്ഞെടുക്കുക)."
+          : "Please share your location to continue — we need it for accurate delivery (or choose store pickup).",
+      );
+      return;
+    }
     setStatus("submitting");
     const res = await placeOrder({
       items: items.map((i) => ({ productId: i.id, qty: i.qty })),
@@ -396,8 +404,23 @@ export function CheckoutForm({
                 </div>
               </div>
 
-              {/* Share location */}
-              <div className="rounded-xl border border-dashed border-gold/40 bg-gold/5 p-4">
+              {/* Share location (required for accurate delivery) */}
+              <div
+                className={`rounded-xl border p-4 ${
+                  location ? "border-leaf/40 bg-leaf/5" : "border-gold bg-gold/10"
+                }`}
+              >
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">
+                    {lang === "ml" ? "ഡെലിവറി ലൊക്കേഷൻ" : "Delivery location"}{" "}
+                    <span className="text-chethi">*</span>
+                  </span>
+                  {!location && (
+                    <span className="rounded-full bg-gold/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold-deep">
+                      {lang === "ml" ? "ഹോം ഡെലിവറിക്ക് ആവശ്യം" : "Required for home delivery"}
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"

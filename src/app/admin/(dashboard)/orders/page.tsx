@@ -2,6 +2,7 @@ import { requireAdmin, listOrdersAdmin, getDistinctPincodes, getDistinctDistrict
 import { updateOrderStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES, DELIVERY_METHODS, type OrderRow } from "@/db/schema";
 import { formatPrice } from "@/lib/site";
+import { receiptWaLink } from "@/lib/receipt";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
@@ -272,7 +273,16 @@ export default async function OrdersPage({
                     </form>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <a
+                        href={receiptWaLink(o)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Send receipt on WhatsApp"
+                        className="rounded-full bg-leaf px-3 py-1.5 text-xs font-semibold text-cream"
+                      >
+                        🧾 Receipt
+                      </a>
                       <a
                         href={waUrl(o.phone, customerMsg(o))}
                         target="_blank"

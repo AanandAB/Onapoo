@@ -123,13 +123,13 @@ export default function PrivacyPage() {
             Grievance Officer:
           </p>
           <p className="mt-2 rounded-xl bg-paper p-4 shadow-soft">
-            Onapookkal — Grievance Officer
+            Name: Aanand AB
             <br />
             Kannur, Kerala — 670643, India
             <br />
             WhatsApp: +91 70340 26295
             <br />
-            Email: onapookkal@gmail.com
+            Email: aanandab44@gmail.com
           </p>
         </section>
 

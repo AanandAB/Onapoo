@@ -69,6 +69,7 @@ export type OrderItem = {
   unit: string;
   qty: number;
   price: number; // rupees per unit
+  costPrice?: number; // rupees per unit — buying cost snapshotted at order time
 };
 
 // ---- Tables ----

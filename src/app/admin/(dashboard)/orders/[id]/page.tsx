@@ -3,6 +3,7 @@ import { requireAdmin, getOrderById } from "@/lib/admin";
 import { updateOrderStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES } from "@/db/schema";
 import { formatPrice } from "@/lib/site";
+import { receiptWaLink } from "@/lib/receipt";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
@@ -39,7 +40,7 @@ export default async function OrderDetailPage({
 
   return (
     <div className="max-w-4xl">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <a href="/admin/orders" className="text-sm text-muted hover:text-ink">
             ← Back to orders
@@ -50,9 +51,19 @@ export default async function OrderDetailPage({
             · {o.createdAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${STATUS_COLOR[o.orderStatus] ?? ""}`}>
-          {STATUS_LABEL[o.orderStatus] ?? o.orderStatus}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${STATUS_COLOR[o.orderStatus] ?? ""}`}>
+            {STATUS_LABEL[o.orderStatus] ?? o.orderStatus}
+          </span>
+          <a
+            href={receiptWaLink(o)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5"
+          >
+            🧾 Send receipt on WhatsApp
+          </a>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

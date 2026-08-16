@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -238,12 +238,31 @@ export async function deleteExpense(formData: FormData): Promise<void> {
 
 export async function updateOrderStatus(formData: FormData): Promise<void> {
   await requireAdmin();
+  const db = getDb();
   const id = str(formData, "id");
   const status = str(formData, "status");
   if (id && status && ORDER_STATUSES.includes(status as OrderStatus)) {
-    await getDb().update(orders).set({ orderStatus: status as OrderStatus }).where(eq(orders.id, id));
+    const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    if (order) {
+      const wasCancelled = order.orderStatus === "cancelled";
+      const nowCancelled = status === "cancelled";
+      // Restock when an order moves into "cancelled" (only on the transition, so
+      // re-saving a cancelled order never double-restocks). Skips manual orders
+      // (empty productId), which never reserved stock in the first place.
+      if (nowCancelled && !wasCancelled) {
+        for (const it of order.items ?? []) {
+          if (!it.productId) continue;
+          await db
+            .update(products)
+            .set({ stock: sql`${products.stock} + ${it.qty}` })
+            .where(eq(products.id, it.productId));
+        }
+      }
+      await db.update(orders).set({ orderStatus: status as OrderStatus }).where(eq(orders.id, id));
+    }
   }
   revalidatePath("/admin/orders");
+  revalidatePath("/");
   redirect("/admin/orders");
 }
 

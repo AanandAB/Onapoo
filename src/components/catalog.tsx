@@ -15,13 +15,26 @@ export function Catalog({
 }) {
   const { lang, t } = useLang();
   const [active, setActive] = useState<string>("all");
+  const [query, setQuery] = useState("");
 
   const sorted = useMemo(() => {
-    const list = [...products].sort(
-      (a, b) => Number(b.isFeatured) - Number(a.isFeatured) || a.sortOrder - b.sortOrder,
-    );
-    return active === "all" ? list : list.filter((p) => p.categoryId === active);
-  }, [products, active]);
+    const q = query.trim().toLowerCase();
+    const list = [...products]
+      .filter((p) => {
+        if (active !== "all" && p.categoryId !== active) return false;
+        if (!q) return true;
+        return (
+          p.nameEn.toLowerCase().includes(q) ||
+          (p.nameMl ?? "").toLowerCase().includes(q) ||
+          (p.colorEn ?? "").toLowerCase().includes(q) ||
+          (p.colorMl ?? "").toLowerCase().includes(q)
+        );
+      })
+      .sort(
+        (a, b) => Number(b.isFeatured) - Number(a.isFeatured) || a.sortOrder - b.sortOrder,
+      );
+    return list;
+  }, [products, active, query]);
 
   const catName = (c: CategoryRow) => (lang === "ml" ? c.nameMl : c.nameEn);
 
@@ -40,6 +53,27 @@ export function Catalog({
           <p className="text-sm text-muted">
             {sorted.length} {lang === "ml" ? "ഇനങ്ങൾ" : "items"}
           </p>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-6">
+          <svg
+            viewBox="0 0 24 24"
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" strokeLinecap="round" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={lang === "ml" ? "പൂക്കൾ തിരയൂ…" : "Search flowers…"}
+            className="w-full rounded-full border border-ink/15 bg-paper py-3 pl-11 pr-4 text-sm text-ink placeholder:text-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+          />
         </div>
 
         {/* Category filter pills */}

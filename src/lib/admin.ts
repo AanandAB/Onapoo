@@ -62,7 +62,7 @@ export type ProfitReport = {
   totalExpenses: number;
   netProfit: number;
   ordersCount: number;
-  daily: { date: string; revenue: number; cost: number; profit: number }[];
+  daily: { date: string; revenue: number; cost: number; profit: number; netProfit: number }[];
 };
 
 // Revenue = subtotal − coupon discount (delivery fees are pass-through, not profit).
@@ -100,15 +100,29 @@ export async function getProfitReport(): Promise<ProfitReport> {
     dayMap.set(day, d);
   }
 
+  // Attribute expenses to the day they were recorded (for the per-day net-profit chart).
+  const expenseByDay = new Map<string, number>();
+  for (const e of allExpenses) {
+    const key = new Date(e.createdAt).toISOString().slice(0, 10);
+    expenseByDay.set(key, (expenseByDay.get(key) ?? 0) + e.amount);
+  }
+
   // Last 14 days (fill gaps with zeroes).
-  const daily: { date: string; revenue: number; cost: number; profit: number }[] = [];
+  const daily: { date: string; revenue: number; cost: number; profit: number; netProfit: number }[] = [];
   const today = new Date();
   for (let i = 13; i >= 0; i--) {
     const dt = new Date(today);
     dt.setDate(dt.getDate() - i);
     const key = dt.toISOString().slice(0, 10);
     const d = dayMap.get(key);
-    daily.push({ date: key, revenue: d?.revenue ?? 0, cost: d?.cost ?? 0, profit: d?.profit ?? 0 });
+    const gross = d?.profit ?? 0;
+    daily.push({
+      date: key,
+      revenue: d?.revenue ?? 0,
+      cost: d?.cost ?? 0,
+      profit: gross,
+      netProfit: gross - (expenseByDay.get(key) ?? 0),
+    });
   }
 
   const totalExpenses = allExpenses.reduce((s, e) => s + e.amount, 0);

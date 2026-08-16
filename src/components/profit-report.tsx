@@ -58,7 +58,7 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
   }, []);
 
   const { daily } = report;
-  const max = Math.max(1, ...daily.map((d) => Math.max(d.revenue, d.profit)));
+  const max = Math.max(1, ...daily.map((d) => Math.max(d.revenue, d.netProfit)));
 
   return (
     <div>
@@ -88,13 +88,13 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
       {/* Bar chart — last 14 days */}
       <div className="mt-6 rounded-xl border border-ink/10 bg-paper p-4 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-base font-semibold">Revenue vs profit — last 14 days</h2>
+          <h2 className="font-display text-base font-semibold">Revenue vs net profit — last 14 days</h2>
           <div className="flex items-center gap-4 text-xs text-muted">
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-sm bg-gold-deep" /> Revenue
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-leaf-deep" /> Profit
+              <span className="h-2.5 w-2.5 rounded-sm bg-leaf-deep" /> Net profit
             </span>
           </div>
         </div>
@@ -102,7 +102,7 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
         <div className="flex h-48 items-end gap-1 sm:h-56">
           {daily.map((d) => {
             const revH = Math.max(0, (d.revenue / max) * 100);
-            const profH = Math.max(0, (d.profit / max) * 100);
+            const profH = Math.max(0, (d.netProfit / max) * 100);
             const label = new Date(d.date + "T00:00:00").toLocaleDateString("en-IN", {
               day: "numeric",
               month: "short",
@@ -116,9 +116,9 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
                     style={{ height: grown ? `${revH}%` : "0%" }}
                   />
                   <div
-                    title={`${label} · Profit ${formatINR(d.profit)}`}
+                    title={`${label} · Net profit ${formatINR(d.netProfit)}`}
                     className={`w-1/2 max-w-[14px] rounded-t-sm transition-all duration-700 ease-out ${
-                      d.profit >= 0 ? "bg-leaf-deep/80 group-hover:bg-leaf-deep" : "bg-chethi/80"
+                      d.netProfit >= 0 ? "bg-leaf-deep/80 group-hover:bg-leaf-deep" : "bg-chethi/80"
                     }`}
                     style={{ height: grown ? `${profH}%` : "0%" }}
                   />

@@ -4,6 +4,7 @@ import { updateOrderStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES } from "@/db/schema";
 import { formatPrice } from "@/lib/site";
 import { receiptWaLink } from "@/lib/receipt";
+import { ReceiptPdfButton } from "@/components/receipt-pdf";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
@@ -38,6 +39,26 @@ export default async function OrderDetailPage({
     `Hi ${o.customerName}, your Onapookkal order ${o.orderNumber} is ${STATUS_LABEL[o.orderStatus]}. Total ₹${o.total}. Thank you! 🌼`,
   )}`;
 
+  const pdfOrder = {
+    orderNumber: o.orderNumber,
+    customerName: o.customerName,
+    phone: o.phone,
+    address: o.address,
+    pincode: o.pincode,
+    landmark: o.landmark,
+    deliveryMethod: o.deliveryMethod,
+    deliveryDate: o.deliveryDate,
+    createdAt: o.createdAt.toISOString(),
+    items: o.items.map((it) => ({ name: it.name, qty: it.qty, price: it.price })),
+    subtotal: o.subtotal,
+    discount: o.discount,
+    deliveryCharge: o.deliveryCharge,
+    total: o.total,
+    couponCode: o.couponCode,
+    paymentMethod: o.paymentMethod,
+    paymentStatus: o.paymentStatus,
+  };
+
   return (
     <div className="max-w-4xl">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -56,14 +77,11 @@ export default async function OrderDetailPage({
             {STATUS_LABEL[o.orderStatus] ?? o.orderStatus}
           </span>
           <div className="flex flex-wrap justify-end gap-2">
-            <a
-              href={`/admin/orders/${o.id}/receipt`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <ReceiptPdfButton
+              order={pdfOrder}
+              label="PDF bill"
               className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper px-4 py-2 text-sm font-semibold text-ink hover:bg-cream"
-            >
-              🖨 PDF bill
-            </a>
+            />
             <a
               href={receiptWaLink(o)}
               target="_blank"

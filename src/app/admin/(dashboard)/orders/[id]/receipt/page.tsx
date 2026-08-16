@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin, getOrderById } from "@/lib/admin";
 import { formatPrice } from "@/lib/site";
 import { PrintButton } from "@/components/print-button";
+import { ReceiptPdfButton } from "@/components/receipt-pdf";
 
 export default async function ReceiptPage({
   params,
@@ -12,6 +13,26 @@ export default async function ReceiptPage({
   const { id } = await params;
   const o = await getOrderById(id);
   if (!o) notFound();
+
+  const pdfOrder = {
+    orderNumber: o.orderNumber,
+    customerName: o.customerName,
+    phone: o.phone,
+    address: o.address,
+    pincode: o.pincode,
+    landmark: o.landmark,
+    deliveryMethod: o.deliveryMethod,
+    deliveryDate: o.deliveryDate,
+    createdAt: o.createdAt.toISOString(),
+    items: o.items.map((it) => ({ name: it.name, qty: it.qty, price: it.price })),
+    subtotal: o.subtotal,
+    discount: o.discount,
+    deliveryCharge: o.deliveryCharge,
+    total: o.total,
+    couponCode: o.couponCode,
+    paymentMethod: o.paymentMethod,
+    paymentStatus: o.paymentStatus,
+  };
 
   const date = new Date(o.createdAt).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -31,7 +52,13 @@ export default async function ReceiptPage({
         <a href={`/admin/orders/${o.id}`} className="text-sm text-muted hover:text-ink">
           ← Back to order
         </a>
-        <PrintButton />
+        <div className="flex items-center gap-2">
+          <ReceiptPdfButton
+            order={pdfOrder}
+            className="rounded-full border border-ink/15 bg-paper px-4 py-2 text-sm font-semibold text-ink hover:bg-cream"
+          />
+          <PrintButton />
+        </div>
       </div>
 
       <div id="receipt" className="rounded-2xl bg-paper p-8 shadow-soft">

@@ -61,6 +61,7 @@ export function Footer({ storeName, storeNameMl }: { storeName: string; storeNam
               <li><Link href="/delivery" className={linkCls}>{ml ? "ഡെലിവറി" : "Delivery"}</Link></li>
               <li><Link href="/track" className={linkCls}>{ml ? "ഓർഡർ ട്രാക്ക്" : "Track order"}</Link></li>
               <li><Link href="/contact" className={linkCls}>{ml ? "ബന്ധപ്പെടുക" : "Contact"}</Link></li>
+              <li><Link href="/privacy" className={linkCls}>{ml ? "സ്വകാര്യതാ നയം" : "Privacy Policy"}</Link></li>
             </ul>
           </div>
 

@@ -60,6 +60,24 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
   const { daily } = report;
   const max = Math.max(1, ...daily.map((d) => Math.max(d.revenue, d.netProfit)));
 
+  // Cumulative (overall) series.
+  let cumRevenue = 0;
+  let cumProfit = 0;
+  const cumulative = daily.map((d) => {
+    cumRevenue += d.revenue;
+    cumProfit += d.netProfit;
+    return { revenue: cumRevenue, netProfit: cumProfit };
+  });
+  const maxCum = Math.max(1, ...cumulative.map((c) => Math.max(c.revenue, c.netProfit)));
+  const minCum = Math.min(0, ...cumulative.map((c) => c.netProfit));
+  const rangeCum = Math.max(1, maxCum - minCum);
+  const W = 600;
+  const H = 200;
+  const px = (i: number) => (cumulative.length <= 1 ? W / 2 : (i / (cumulative.length - 1)) * W);
+  const py = (v: number) => H - ((v - minCum) / rangeCum) * H;
+  const revPoints = cumulative.map((c, i) => `${px(i)},${py(c.revenue)}`).join(" ");
+  const profitPoints = cumulative.map((c, i) => `${px(i)},${py(c.netProfit)}`).join(" ");
+
   return (
     <div>
       {/* Summary cards */}
@@ -132,6 +150,64 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
         </div>
         <div className="mt-1 text-center text-[10px] text-muted sm:hidden">
           last 14 days
+        </div>
+      </div>
+
+      {/* Cumulative (overall) chart */}
+      <div className="mt-6 rounded-xl border border-ink/10 bg-paper p-4 sm:p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-base font-semibold">Overall — cumulative totals</h2>
+          <div className="flex items-center gap-4 text-xs text-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-sm bg-gold-deep" /> Revenue
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-sm bg-leaf-deep" /> Net profit
+            </span>
+          </div>
+        </div>
+
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
+          className="w-full"
+          style={{ height: "13rem" }}
+        >
+          {[0.25, 0.5, 0.75].map((f) => (
+            <line key={f} x1="0" x2={W} y1={H * f} y2={H * f} stroke="rgba(0,0,0,0.06)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+          ))}
+          <line x1="0" x2={W} y1={py(0)} y2={py(0)} stroke="rgba(0,0,0,0.18)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+          <polygon
+            points={`0,${H} ${profitPoints} ${W},${H}`}
+            fill="rgba(22,101,52,0.08)"
+            className={grown ? "opacity-100 transition-opacity duration-700" : "opacity-0"}
+          />
+          <polyline
+            points={revPoints}
+            fill="none"
+            stroke="#b8860b"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+            className={grown ? "opacity-100 transition-opacity duration-700" : "opacity-0"}
+          />
+          <polyline
+            points={profitPoints}
+            fill="none"
+            stroke="#166534"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+            className={grown ? "opacity-100 transition-opacity duration-700" : "opacity-0"}
+          />
+        </svg>
+
+        <div className="mt-2 flex justify-between text-[10px] text-muted">
+          <span>{daily[0]?.date.slice(5)}</span>
+          <span>{daily[7]?.date.slice(5)}</span>
+          <span>{daily[13]?.date.slice(5)}</span>
         </div>
       </div>
     </div>

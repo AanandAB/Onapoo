@@ -86,6 +86,7 @@ export type ProfitReport = {
   cogs: number;
   grossProfit: number;
   totalExpenses: number;
+  totalPurchases: number;
   netProfit: number;
   ordersCount: number;
   daily: { date: string; revenue: number; cost: number; profit: number; netProfit: number }[];
@@ -96,10 +97,11 @@ export type ProfitReport = {
 // Net     = (revenue − COGS) − additional expenses.
 export async function getProfitReport(): Promise<ProfitReport> {
   const db = getDb();
-  const [allOrders, allProducts, allExpenses] = await Promise.all([
+  const [allOrders, allProducts, allExpenses, allPurchases] = await Promise.all([
     db.select().from(orders).all(),
     db.select().from(products).all(),
     db.select().from(expenses).all(),
+    db.select().from(purchases).all(),
   ]);
 
   const costById = new Map(allProducts.map((p) => [p.id, p.costPrice]));
@@ -154,12 +156,14 @@ export async function getProfitReport(): Promise<ProfitReport> {
   }
 
   const totalExpenses = allExpenses.reduce((s, e) => s + e.amount, 0);
+  const totalPurchases = allPurchases.reduce((s, p) => s + p.cost, 0);
 
   return {
     revenue,
     cogs,
     grossProfit: revenue - cogs,
     totalExpenses,
+    totalPurchases,
     netProfit: revenue - cogs - totalExpenses,
     ordersCount: allOrders.filter((o) => o.orderStatus !== "cancelled").length,
     daily,

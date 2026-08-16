@@ -31,7 +31,7 @@ npx wrangler deploy                 # deploy to Cloudflare
 ```
 - **No CI/CD** — `git push` does NOT deploy. Deploy = manual `opennextjs-cloudflare build` + `wrangler deploy`.
 - User's "push redeploy" = `git push origin main` then OpenNext build + `wrangler deploy`.
-- **Never `git push` without explicit user approval** (user reviews offline, then says "push"). No `--force`/`--orphan`/`branch -D`.
+- **Always `git push` after committing** — user wants push + deploy as the default flow (no separate approval). No `--force`/`--orphan`/`branch -D`.
 - Multiple parallel Hermes sessions touch this repo — always `git fetch` + verify `origin/main` first.
 - Kill `next dev` before building (it locks `.open-next` with EPERM).
 - `npx tsc --noEmit -p tsconfig.json` is the ONLY reliable typecheck. The patch/write tool's inline "lint" output is **spurious noise** (it can't resolve `@/` path aliases or node_modules types) — ignore it; trust the real tsc exit code.
@@ -48,7 +48,7 @@ npx wrangler deploy                 # deploy to Cloudflare
 ## 6. Key features & where they live
 - **Distance-based delivery** (`lib/site.ts`): Haversine from store. Free ≤7 km; >7 km = ₹20 base + ₹5/extra km (ceil); free over ₹2,000; ₹30 flat if no location. Shared server+client via `computeDeliveryCharge(subtotal, location)` — server never trusts client.
 - **Coupons** (`lib/coupons.ts`): `validateCoupon`, `markCouponUsed`, `generateCouponCode`. Types: **percent / flat (₹) / free_delivery**. Checkout field (`checkout-form.tsx`) + preview API (`/api/coupon`). Applied in `placeOrder` (`lib/order-actions.ts`). Admin: `/admin/coupons` page + in-page generator (`coupon-generator.tsx`). Python GUI: `coupon_generator.py` (run `py -3.12 coupon_generator.py`).
-- **Profit & Loss** (`lib/admin.ts` `getProfitReport`, `components/profit-report.tsx`, `/admin/profit`): Revenue = subtotal − coupon discount; COGS = Σ(costPrice × qty); Gross = revenue − COGS; Net = gross − expenses. Cancelled orders excluded. Animated count-up cards + per-day bar chart + cumulative line chart.
+- **Profit & Loss** (`lib/admin.ts` `getProfitReport`, `components/profit-report.tsx`, `/admin/profit`): Revenue = subtotal − coupon discount; COGS = Σ(costPrice × qty); Gross = revenue − COGS; Net = gross − expenses. Cancelled orders excluded. Animated count-up cards + per-day bar chart + cumulative line chart. Also shows a **Stock purchases** total (Σ purchase-ledger cost) as a separate card — informational, NOT subtracted again since purchases are already reflected in COGS.
 - **Delivery map** (`lib/geocode.ts`, `lib/admin.ts` `getDeliveryMapOrders`, `components/delivery-map.tsx`, `/admin/map`): Leaflet + OSM. Plots pending delivery orders (excl. cancelled/delivered). Exact pin from shared location, else pincode geocoded via Nominatim (cached).
 - **Order tracking** (`/track`, `components/track-view.tsx`): customer enters order # + phone → status timeline + printable receipt (Print/Save button + `@media print` CSS).
 - **Manual receipt send** (`lib/receipt.ts`): admin "Send receipt" button (orders list row + order detail header) opens a pre-filled WhatsApp message with a full itemized receipt; admin taps Send from their own device (no automation, no ban risk). Real **PDF download** via `jsPDF` (`receipt-pdf.tsx` → `ReceiptPdfButton` on order detail + receipt page); print option kept at `/admin/orders/[id]/receipt`.
@@ -80,7 +80,7 @@ npx wrangler deploy                 # deploy to Cloudflare
 ## 10. Git / current state (session 2026-08-16)
 - jsPDF real PDF receipt download committed + pushed (HEAD `c59d1f1`), deployed. Working tree note: `flower-wholesale-contacts.html` is an untracked local reference (not committed).
 - Vendors + Purchases admin sections added (tables + pages + sidebar); `scripts/migrate-vendors-purchases.sql` applied to live D1.
-- **Do NOT push without explicit approval.** Deploy = `npm run deploy` (opennextjs build + deploy).
+- **Push + deploy is the default** — commit → `git push origin main` → `npm run deploy`.
 
 ## 11. Pending / candidate future work
 - Auto-send receipt (automated) via WhatsApp: assessed **OpenWA** (feasible but unofficial/ban risk); official Cloud API is the safe-but-paid path. Manual "Send receipt" button already added — admin taps Send from own device.

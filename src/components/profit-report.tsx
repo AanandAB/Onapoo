@@ -81,7 +81,7 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
   return (
     <div>
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Revenue" value={report.revenue} accent="text-gold-deep" />
         <StatCard label="Cost of goods" value={report.cogs} accent="text-chethi" />
         <StatCard
@@ -91,6 +91,7 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
           negative={report.grossProfit < 0}
         />
         <StatCard label="Expenses" value={report.totalExpenses} accent="text-muted" />
+        <StatCard label="Stock purchases" value={report.totalPurchases} accent="text-chethi" />
         <StatCard
           label="Net profit"
           value={report.netProfit}
@@ -101,6 +102,7 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
 
       <p className="mt-2 text-xs text-muted">
         {report.ordersCount} order{report.ordersCount === 1 ? "" : "s"} counted · cancelled excluded · delivery fees not counted as profit
+        · stock purchases shown separately (already covered by cost of goods, not subtracted twice)
       </p>
 
       {/* Bar chart — last 14 days */}

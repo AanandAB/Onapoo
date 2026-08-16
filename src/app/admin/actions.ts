@@ -191,19 +191,22 @@ export async function createCoupon(
   await requireAdmin();
   const db = getDb();
   const phone = normalizePhone(str(formData, "phone") ?? "");
-  const type = (str(formData, "type") ?? "percent") as "percent" | "free_delivery";
+  const type = (str(formData, "type") ?? "percent") as "percent" | "flat" | "free_delivery";
   const value = num(formData, "value") ?? 0;
 
   if (phone.length < 8) return { ok: false, error: "Enter a valid phone number (8+ digits)." };
   if (type === "percent" && (value < 1 || value > 100)) {
     return { ok: false, error: "Discount must be between 1 and 100%." };
   }
+  if (type === "flat" && value < 1) {
+    return { ok: false, error: "Enter a discount amount of ₹1 or more." };
+  }
 
   const code = generateCouponCode();
   await db.insert(coupons).values({
     code,
     type,
-    value: type === "percent" ? value : 0,
+    value: type === "free_delivery" ? 0 : value,
     phone,
     used: false,
   });

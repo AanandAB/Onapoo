@@ -5,7 +5,7 @@ import { createCoupon } from "@/app/admin/actions";
 
 export function CouponGenerator() {
   const [phone, setPhone] = useState("");
-  const [type, setType] = useState<"percent" | "free_delivery">("percent");
+  const [type, setType] = useState<"percent" | "flat" | "free_delivery">("percent");
   const [value, setValue] = useState("10");
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState("");
@@ -57,10 +57,11 @@ export function CouponGenerator() {
           <label className="mb-1.5 block text-sm font-semibold">Offer type</label>
           <select
             value={type}
-            onChange={(e) => setType(e.target.value as "percent" | "free_delivery")}
+            onChange={(e) => setType(e.target.value as "percent" | "flat" | "free_delivery")}
             className={inputCls}
           >
             <option value="percent">Discount %</option>
+            <option value="flat">Flat amount (₹)</option>
             <option value="free_delivery">Free delivery</option>
           </select>
         </div>
@@ -74,6 +75,17 @@ export function CouponGenerator() {
               type="number"
               min={1}
               max={100}
+              className={inputCls}
+            />
+          </div>
+        ) : type === "flat" ? (
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold">Discount amount (₹)</label>
+            <input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              type="number"
+              min={1}
               className={inputCls}
             />
           </div>

@@ -7,7 +7,8 @@ inserts it directly into the production D1 database (via `npx wrangler`),
 so it's immediately usable at checkout.
 
 Offer types:
-  • Discount %   → value = the percentage off the subtotal
+  • Discount %    → value = the percentage off the subtotal
+  • Flat amount ₹ → value = a fixed rupee discount off the subtotal
   • Free delivery → value = 0, waives the delivery charge
 
 The phone number is stored WITHOUT a country code (a leading "91" is stripped),
@@ -23,7 +24,7 @@ import string
 import subprocess
 import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = SCRIPT_DIR  # run wrangler from the project root (node_modules + wrangler.jsonc live here)
@@ -70,7 +71,7 @@ class App:
     def __init__(self, root: tk.Tk):
         self.root = root
         root.title("Onapookkal — Coupon Generator")
-        root.geometry("440x460")
+        root.geometry("500x470")
         root.resizable(False, False)
 
         pad = {"padx": 16, "pady": 6}
@@ -98,22 +99,25 @@ class App:
         type_frame = ttk.Frame(frm)
         type_frame.pack(fill="x", padx=16)
         ttk.Radiobutton(type_frame, text="Discount %", variable=self.ctype, value="percent",
-                        command=self.toggle_percent).pack(side="left")
+                        command=self.toggle_value).pack(side="left")
+        ttk.Radiobutton(type_frame, text="Flat ₹", variable=self.ctype, value="flat",
+                        command=self.toggle_value).pack(side="left", padx=(14, 0))
         ttk.Radiobutton(type_frame, text="Free delivery", variable=self.ctype, value="free_delivery",
-                        command=self.toggle_percent).pack(side="left", padx=(20, 0))
+                        command=self.toggle_value).pack(side="left", padx=(14, 0))
 
-        # Percent
-        ttk.Label(frm, text="Discount percentage").pack(anchor="w", **pad)
-        self.percent = tk.IntVar(value=10)
-        self.percent_spin = ttk.Spinbox(frm, from_=1, to=100, textvariable=self.percent, font=("Segoe UI", 12))
-        self.percent_spin.pack(fill="x", padx=16)
+        # Value (percent or flat rupees)
+        self.value_label = ttk.Label(frm, text="Discount percentage")
+        self.value_label.pack(anchor="w", **pad)
+        self.value = tk.IntVar(value=10)
+        self.value_spin = ttk.Spinbox(frm, from_=1, to=100, textvariable=self.value, font=("Segoe UI", 12))
+        self.value_spin.pack(fill="x", padx=16)
 
         # Generate button
         self.gen_btn = ttk.Button(frm, text="Generate coupon", command=self.generate)
         self.gen_btn.pack(fill="x", padx=16, pady=(16, 8))
 
         # Status
-        self.status = ttk.Label(frm, text="", foreground="#555", wraplength=400, justify="left")
+        self.status = ttk.Label(frm, text="", foreground="#555", wraplength=440, justify="left")
         self.status.pack(anchor="w", padx=16)
 
         # Result
@@ -127,11 +131,18 @@ class App:
         self.copy_btn = ttk.Button(frm, text="Copy code", command=self.copy_code, state="disabled")
         self.copy_btn.pack(padx=16, pady=(0, 8))
 
-        self.toggle_percent()
+        self.toggle_value()
 
-    def toggle_percent(self):
-        state = "normal" if self.ctype.get() == "percent" else "disabled"
-        self.percent_spin.config(state=state)
+    def toggle_value(self):
+        ctype = self.ctype.get()
+        if ctype == "percent":
+            self.value_label.config(text="Discount percentage")
+            self.value_spin.config(from_=1, to=100, state="normal")
+        elif ctype == "flat":
+            self.value_label.config(text="Discount amount (₹)")
+            self.value_spin.config(from_=1, to=100000, state="normal")
+        else:
+            self.value_spin.config(state="disabled")
 
     def generate(self):
         phone = normalize_phone(self.phone.get())
@@ -141,12 +152,21 @@ class App:
         ctype = self.ctype.get()
         if ctype == "percent":
             try:
-                value = int(self.percent.get())
+                value = int(self.value.get())
             except (tk.TclError, ValueError):
                 messagebox.showwarning("Percent", "Enter a number between 1 and 100.")
                 return
             if not (1 <= value <= 100):
                 messagebox.showwarning("Percent", "Percent must be between 1 and 100.")
+                return
+        elif ctype == "flat":
+            try:
+                value = int(self.value.get())
+            except (tk.TclError, ValueError):
+                messagebox.showwarning("Amount", "Enter a discount amount in rupees.")
+                return
+            if value < 1:
+                messagebox.showwarning("Amount", "Amount must be ₹1 or more.")
                 return
         else:
             value = 0
@@ -160,7 +180,12 @@ class App:
         def worker():
             try:
                 insert_coupon(code, ctype, value, phone)
-                label = f"{value}% off" if ctype == "percent" else "free delivery"
+                if ctype == "percent":
+                    label = f"{value}% off"
+                elif ctype == "flat":
+                    label = f"₹{value} off"
+                else:
+                    label = "free delivery"
                 self.root.after(0, lambda: self.on_done(code, phone, label))
             except Exception as e:
                 self.root.after(0, lambda: self.on_error(str(e)))

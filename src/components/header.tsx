@@ -39,8 +39,8 @@ export function Header({ storeName, storeNameMl }: { storeName: string; storeNam
   }, []);
 
   const nav = [
-    { href: "#shop", label: t("nav_shop"), anchor: true },
-    { href: "#how", label: t("nav_how"), anchor: true },
+    { href: "/#shop", label: t("nav_shop"), anchor: true },
+    { href: "/#how", label: t("nav_how"), anchor: true },
     { href: "/faq", label: t("nav_faq"), anchor: false },
     { href: "/contact", label: t("nav_contact"), anchor: false },
     { href: "/track", label: t("nav_track"), anchor: false },

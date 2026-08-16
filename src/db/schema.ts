@@ -210,8 +210,8 @@ export const settings = sqliteTable("settings", {
 
 export const coupons = sqliteTable("coupons", {
   code: text("code").primaryKey(),
-  type: text("type", { enum: ["percent", "free_delivery"] }).notNull(),
-  value: integer("value").notNull().default(0), // percent (0-100) or 0 for free_delivery
+  type: text("type", { enum: ["percent", "flat", "free_delivery"] }).notNull(),
+  value: integer("value").notNull().default(0), // percent (1-100) / flat rupees / 0 for free_delivery
   phone: text("phone").notNull(), // normalized phone, no country code
   used: integer("used", { mode: "boolean" }).notNull().default(false),
 });

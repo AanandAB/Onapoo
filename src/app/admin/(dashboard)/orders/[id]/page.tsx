@@ -55,14 +55,24 @@ export default async function OrderDetailPage({
           <span className={`rounded-full px-3 py-1 text-sm font-semibold ${STATUS_COLOR[o.orderStatus] ?? ""}`}>
             {STATUS_LABEL[o.orderStatus] ?? o.orderStatus}
           </span>
-          <a
-            href={receiptWaLink(o)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5"
-          >
-            🧾 Send receipt on WhatsApp
-          </a>
+          <div className="flex flex-wrap justify-end gap-2">
+            <a
+              href={`/admin/orders/${o.id}/receipt`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper px-4 py-2 text-sm font-semibold text-ink hover:bg-cream"
+            >
+              🖨 PDF bill
+            </a>
+            <a
+              href={receiptWaLink(o)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5"
+            >
+              🧾 Send receipt on WhatsApp
+            </a>
+          </div>
         </div>
       </div>
 
@@ -112,6 +122,12 @@ export default async function OrderDetailPage({
         </ul>
         <div className="mt-3 space-y-1 border-t border-ink/10 pt-3 text-sm">
           <div className="flex justify-between text-muted"><span>Subtotal</span><span>{formatPrice(o.subtotal)}</span></div>
+          {o.discount > 0 && (
+            <div className="flex justify-between text-leaf-deep">
+              <span>Discount{o.couponCode ? ` (${o.couponCode})` : ""}</span>
+              <span>−{formatPrice(o.discount)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-muted"><span>Delivery</span><span>{formatPrice(o.deliveryCharge)}</span></div>
           <div className="flex justify-between font-display text-lg font-semibold"><span>Total</span><span>{formatPrice(o.total)}</span></div>
         </div>

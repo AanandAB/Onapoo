@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { coupons, type CouponRow } from "@/db/schema";
 import { normalizePhone } from "@/lib/site";
 
-export type CouponType = "percent" | "free_delivery";
+export type CouponType = "percent" | "flat" | "free_delivery";
 
 export function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
@@ -50,7 +50,12 @@ export async function validateCoupon(
   }
   if (coupon.used) return { ok: false, error: "This coupon has already been used." };
   const freeDelivery = coupon.type === "free_delivery";
-  const discount = coupon.type === "percent" ? Math.round((subtotal * coupon.value) / 100) : 0;
+  let discount = 0;
+  if (coupon.type === "percent") {
+    discount = Math.round((subtotal * coupon.value) / 100);
+  } else if (coupon.type === "flat") {
+    discount = Math.min(coupon.value, subtotal); // cap so it never exceeds the subtotal
+  }
   return { ok: true, coupon, discount, freeDelivery };
 }
 

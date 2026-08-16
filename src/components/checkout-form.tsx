@@ -99,9 +99,13 @@ export function CheckoutForm({
             ? ml
               ? "സൗജന്യ ഡെലിവറി പ്രയോഗിച്ചു ✓"
               : "Free delivery applied ✓"
-            : ml
-              ? `${data.value}% കിഴിവ് പ്രയോഗിച്ചു ✓`
-              : `${data.value}% off applied ✓`,
+            : data.type === "flat"
+              ? ml
+                ? `₹${data.value} കിഴിവ് പ്രയോഗിച്ചു ✓`
+                : `₹${data.value} off applied ✓`
+              : ml
+                ? `${data.value}% കിഴിവ് പ്രയോഗിച്ചു ✓`
+                : `${data.value}% off applied ✓`,
         );
       } else {
         setCoupon(null);
@@ -575,10 +579,10 @@ export function CheckoutForm({
               <span>{labels.subtotal}</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
-            {discount > 0 && (
-              <div className="flex justify-between text-leaf-deep">
-                <span>{ml ? "കിഴിവ് (കൂപ്പൺ)" : "Discount (coupon)"}</span>
-                <span>−{formatPrice(discount)}</span>
+            {coupon && (
+              <div className="flex justify-between font-medium text-leaf-deep">
+                <span>{ml ? "കൂപ്പൺ കിഴിവ്" : "Coupon discount"}</span>
+                <span>{discount > 0 ? `−${formatPrice(discount)}` : ml ? "സൗജന്യ ഡെലിവറി" : "Free delivery"}</span>
               </div>
             )}
             <div className="flex justify-between text-muted">

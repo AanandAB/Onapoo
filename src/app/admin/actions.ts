@@ -17,6 +17,8 @@ import {
   offers,
   orders,
   products,
+  purchases,
+  vendors,
   ORDER_STATUSES,
   type DeliveryMethod,
   type OfferType,
@@ -235,6 +237,64 @@ export async function deleteExpense(formData: FormData): Promise<void> {
   if (id) await db.delete(expenses).where(eq(expenses.id, id));
   revalidatePath("/admin/profit");
   redirect("/admin/profit");
+}
+
+// ---- Vendors / Purchases ---- //
+
+export async function saveVendor(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const db = getDb();
+  const id = str(formData, "id");
+  const data = {
+    name: str(formData, "name") ?? "Vendor",
+    phone: str(formData, "phone"),
+    location: str(formData, "location"),
+    supplies: str(formData, "supplies"),
+    active: bool(formData, "active"),
+  };
+  if (id) {
+    await db.update(vendors).set(data).where(eq(vendors.id, id));
+  } else {
+    await db.insert(vendors).values({ id: crypto.randomUUID(), ...data });
+  }
+  revalidatePath("/admin/vendors");
+  redirect("/admin/vendors");
+}
+
+export async function deleteVendor(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = str(formData, "id");
+  if (id) await getDb().delete(vendors).where(eq(vendors.id, id));
+  revalidatePath("/admin/vendors");
+  redirect("/admin/vendors");
+}
+
+export async function savePurchase(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const db = getDb();
+  const id = str(formData, "id");
+  const data = {
+    vendorId: str(formData, "vendorId"), // null when no vendor chosen
+    item: str(formData, "item") ?? "Purchase",
+    quantity: str(formData, "quantity"),
+    cost: num(formData, "cost") ?? 0,
+    notes: str(formData, "notes"),
+  };
+  if (id) {
+    await db.update(purchases).set(data).where(eq(purchases.id, id));
+  } else {
+    await db.insert(purchases).values({ id: crypto.randomUUID(), ...data });
+  }
+  revalidatePath("/admin/purchases");
+  redirect("/admin/purchases");
+}
+
+export async function deletePurchase(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = str(formData, "id");
+  if (id) await getDb().delete(purchases).where(eq(purchases.id, id));
+  revalidatePath("/admin/purchases");
+  redirect("/admin/purchases");
 }
 
 // ---- Orders / CRM ----

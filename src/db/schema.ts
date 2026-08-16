@@ -225,6 +225,30 @@ export const expenses = sqliteTable("expenses", {
     .$defaultFn(() => new Date()),
 });
 
+export const vendors = sqliteTable("vendors", {
+  id: pk(),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  location: text("location"),
+  supplies: text("supplies"), // what they supply / notes
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  ...timestamps,
+});
+
+export const purchases = sqliteTable(
+  "purchases",
+  {
+    id: pk(),
+    vendorId: text("vendor_id"), // optional — "only if I have a vendor"
+    item: text("item").notNull(), // what was bought, e.g. "Marigold"
+    quantity: text("quantity"), // free text, e.g. "10 kg" / "5 bunches"
+    cost: integer("cost").notNull(), // rupees (integer) — total paid
+    notes: text("notes"),
+    ...timestamps,
+  },
+  (t) => [index("purchases_vendor_idx").on(t.vendorId)],
+);
+
 // ---- Inferred row types ----
 
 export type CategoryRow = typeof categories.$inferSelect;
@@ -232,5 +256,7 @@ export type ProductRow = typeof products.$inferSelect;
 export type OfferRow = typeof offers.$inferSelect;
 export type CouponRow = typeof coupons.$inferSelect;
 export type ExpenseRow = typeof expenses.$inferSelect;
+export type VendorRow = typeof vendors.$inferSelect;
+export type PurchaseRow = typeof purchases.$inferSelect;
 export type OrderRow = typeof orders.$inferSelect;
 export type AdminRow = typeof admins.$inferSelect;

@@ -11,10 +11,13 @@ import {
   offers,
   orders,
   products,
+  purchases,
+  vendors,
   ORDER_STATUSES,
   PAYMENT_METHODS,
   DELIVERY_METHODS,
   type OrderStatus,
+  type PurchaseRow,
 } from "@/db/schema";
 
 export async function getSession(): Promise<SessionPayload | null> {
@@ -53,6 +56,29 @@ export async function listCoupons() {
 export async function listExpenses() {
   const db = getDb();
   return db.select().from(expenses).orderBy(desc(expenses.createdAt));
+}
+
+export async function listVendors() {
+  const db = getDb();
+  return db.select().from(vendors).orderBy(asc(vendors.name));
+}
+
+export async function getVendorById(id: string) {
+  const db = getDb();
+  const [v] = await db.select().from(vendors).where(eq(vendors.id, id)).limit(1);
+  return v ?? null;
+}
+
+export type PurchaseWithVendor = PurchaseRow & { vendorName: string | null };
+
+export async function listPurchases(): Promise<PurchaseWithVendor[]> {
+  const db = getDb();
+  const [all, allVendors] = await Promise.all([
+    db.select().from(purchases).orderBy(desc(purchases.createdAt)),
+    db.select().from(vendors),
+  ]);
+  const nameById = new Map(allVendors.map((v) => [v.id, v.name]));
+  return all.map((p) => ({ ...p, vendorName: nameById.get(p.vendorId ?? "") ?? null }));
 }
 
 export type ProfitReport = {

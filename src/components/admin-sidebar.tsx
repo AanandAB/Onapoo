@@ -12,6 +12,8 @@ const LINKS = [
   { href: "/admin/orders", label: "Orders", icon: "M6 2h9l4 4v16H6zM15 2v4h4M9 12h6M9 16h6" },
   { href: "/admin/map", label: "Delivery map", icon: "M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" },
   { href: "/admin/reports", label: "Reports", icon: "M4 20V10M10 20V4M16 20v-8M22 20H2" },
+  { href: "/admin/vendors", label: "Vendors", icon: "M3 9l1-5h16l1 5M4 9v11h16V9M4 9h16M9 20v-6h6v6" },
+  { href: "/admin/purchases", label: "Purchases", icon: "M6 7h12l1.5 13.5H4.5L6 7zM9 7V5a3 3 0 0 1 6 0v2" },
   { href: "/admin/profit", label: "Profit & Loss", icon: "M3 17l6-6 4 4 8-8M21 7h-5M21 7v5" },
 ];
 

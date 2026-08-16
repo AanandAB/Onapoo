@@ -42,6 +42,8 @@ npx wrangler deploy                 # deploy to Cloudflare
 - **orders**: items (JSON `{productId,name,nameMl,unit,qty,price}`), deliveryMethod (delivery|pickup), `location` ("lat,lng" when shared), paymentMethod/paymentStatus, orderStatus (new→confirmed→packed→out_for_delivery→delivered / cancelled), subtotal, deliveryCharge, **`discount`**, **`couponCode`**, total, district, area, pincode, notes.
 - **coupons**: code (PK), type (percent|free_delivery), value, phone (normalized, no country code), used (bool). Single-use, phone-bound.
 - **expenses**: id, label, amount (₹), createdAt. (Additional business overhead for the P&L report.)
+- **vendors** (optional suppliers): name, phone, location, supplies (notes), active (bool), timestamps.
+- **purchases** (vendor purchase ledger): vendorId (nullable — "only if I have a vendor"), item (what was bought), quantity (free text e.g. "10 kg"), cost (₹), notes, timestamps.
 
 ## 6. Key features & where they live
 - **Distance-based delivery** (`lib/site.ts`): Haversine from store. Free ≤7 km; >7 km = ₹20 base + ₹5/extra km (ceil); free over ₹2,000; ₹30 flat if no location. Shared server+client via `computeDeliveryCharge(subtotal, location)` — server never trusts client.
@@ -69,6 +71,7 @@ npx wrangler deploy                 # deploy to Cloudflare
 - Product images: **NO R2** (account disabled). Base64 data URLs in D1 (admin compresses to ≤1400px JPEG) or static `/images/flowers/*.jpg`. Avoid inlining many/large base64 images into HTML (bloats pages).
 - `workers_dev: true` MUST stay in `wrangler.jsonc` (fallback URL); adding `routes` otherwise disables workers.dev.
 - `AUTH_SECRET` is a Worker secret (`getSecret()` in `lib/auth.ts`, dev fallback).
+- **DB migrations are STALE vs live schema**: `drizzle/migrations` (0000/0001) predate several live columns/tables — `coupons`, `expenses`, `products.cost_price`/`stock`/`images`, `orders.discount`/`coupon_code`/`district`/`area`, and `vendors`/`purchases` were all added by running SQL directly (`wrangler d1 execute --remote`), NOT via `drizzle-kit generate`. So do NOT run `drizzle-kit generate` + apply (it will try to recreate existing tables and fail). Add new tables by writing a raw SQL file (see `scripts/migrate-vendors-purchases.sql`) and applying with `wrangler d1 execute onapookkal-db --remote --file <file>`. `src/db/schema.ts` remains the app's source of truth.
 
 ## 9. Security
 - Admin password is **NOT in any repo file** (was exposed once → changed in D1). Username `admin`. Do not write the password anywhere.
@@ -76,6 +79,7 @@ npx wrangler deploy                 # deploy to Cloudflare
 
 ## 10. Git / current state (session 2026-08-16)
 - jsPDF real PDF receipt download committed + pushed (HEAD `c59d1f1`), deployed. Working tree note: `flower-wholesale-contacts.html` is an untracked local reference (not committed).
+- Vendors + Purchases admin sections added (tables + pages + sidebar); `scripts/migrate-vendors-purchases.sql` applied to live D1.
 - **Do NOT push without explicit approval.** Deploy = `npm run deploy` (opennextjs build + deploy).
 
 ## 11. Pending / candidate future work

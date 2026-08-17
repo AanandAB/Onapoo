@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, whatsappLink, STORE_MAPS_LINK, DELIVERY_FREE_RADIUS_KM, DELIVERY_FREE_OVER_AMOUNT } from "@/lib/site";
+import { formatPrice, whatsappLink, STORE_MAPS_LINK, DELIVERY_FREE_RADIUS_KM, DELIVERY_FREE_OVER_AMOUNT, lineTotal, formatQty } from "@/lib/site";
 import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
 
@@ -29,7 +29,9 @@ export function ProductDetail({
 }) {
   const { lang, t } = useLang();
   const { add } = useCart();
-  const [qty, setQty] = useState(1);
+  const isKg = product.unit === "kg";
+  const [qty, setQty] = useState(1); // non-kg: whole-unit count
+  const [grams, setGrams] = useState(500); // kg: weight in grams
   const [imgErr, setImgErr] = useState(false);
   const [active, setActive] = useState(0);
 
@@ -46,16 +48,18 @@ export function ProductDetail({
       ? Math.round((1 - product.price / product.compareAtPrice) * 100)
       : null;
 
+  const amountQty = isKg ? grams / 1000 : qty;
+
   const wa = whatsappLink(
     ml
-      ? `ഹലോ, എനിക്ക് ${product.nameMl} × ${qty} ഓർഡർ ചെയ്യണം`
-      : `Hi, I'd like to order ${product.nameEn} × ${qty}`,
+      ? `ഹലോ, എനിക്ക് ${product.nameMl} ${formatQty(amountQty, product.unit)} ഓർഡർ ചെയ്യണം`
+      : `Hi, I'd like to order ${product.nameEn} ${formatQty(amountQty, product.unit)}`,
   );
 
   const onAdd = () =>
     add(
       { id: product.id, name: product.nameEn, nameMl: product.nameMl, unit: product.unit, price: product.price },
-      qty,
+      amountQty,
     );
 
   const L = ml
@@ -164,46 +168,95 @@ export function ProductDetail({
 
           {desc && <p className="mt-4 leading-relaxed text-muted">{desc}</p>}
 
-          <div className="mt-6 flex items-center gap-3">
-            <div className="flex items-center rounded-full border border-ink/15 bg-paper">
+          {isKg ? (
+            <div className="mt-6 space-y-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm text-muted">{formatQty(amountQty, "kg")} =</span>
+                <span className="font-display text-2xl font-semibold text-leaf-deep">
+                  {formatPrice(lineTotal(product.price, amountQty))}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {[250, 500, 750, 1000, 2000].map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGrams(Math.min(g, (product.stock || 1) * 1000))}
+                    className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                      grams === g ? "border-gold bg-gold text-cream" : "border-ink/15 bg-paper text-ink/70 hover:bg-cream"
+                    }`}
+                  >
+                    {g >= 1000 ? `${g / 1000} kg` : `${g} g`}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min={50}
+                  step={50}
+                  inputMode="numeric"
+                  value={grams}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    if (!Number.isNaN(v)) setGrams(Math.max(50, Math.min((product.stock || 1) * 1000, v)));
+                  }}
+                  aria-label="Weight in grams"
+                  className="h-11 w-24 rounded-full border border-ink/15 bg-paper text-center text-base font-semibold focus:border-gold focus:outline-none"
+                />
+                <span className="text-sm text-muted">{ml ? "ഗ്രാം" : "grams"}</span>
+                <button
+                  onClick={onAdd}
+                  disabled={out}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {L.addToCart}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-6 flex items-center gap-3">
+              <div className="flex items-center rounded-full border border-ink/15 bg-paper">
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  aria-label="Decrease"
+                  className="grid h-11 w-11 place-items-center rounded-full text-ink/70 hover:text-ink"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-8 text-center font-semibold">{qty}</span>
+                <button
+                  onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
+                  aria-label="Increase"
+                  className="grid h-11 w-11 place-items-center rounded-full text-ink/70 hover:text-ink"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <input
+                type="number"
+                min={1}
+                inputMode="numeric"
+                value={qty}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!Number.isNaN(v)) setQty(Math.max(1, Math.min(product.stock, v)));
+                }}
+                aria-label={L.qty}
+                className="h-11 w-20 rounded-full border border-ink/15 bg-paper text-center text-base font-semibold focus:border-gold focus:outline-none"
+              />
+              <span className="text-sm text-muted">{unitLabel(product.unit, t)}</span>
               <button
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                aria-label="Decrease"
-                className="grid h-11 w-11 place-items-center rounded-full text-ink/70 hover:text-ink"
+                onClick={onAdd}
+                disabled={out}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50"
               >
-                <Minus className="h-4 w-4" />
-              </button>
-              <span className="w-8 text-center font-semibold">{qty}</span>
-              <button
-                onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
-                aria-label="Increase"
-                className="grid h-11 w-11 place-items-center rounded-full text-ink/70 hover:text-ink"
-              >
-                <Plus className="h-4 w-4" />
+                <ShoppingCart className="h-4 w-4" />
+                {L.addToCart}
               </button>
             </div>
-            <input
-              type="number"
-              min={1}
-              inputMode="numeric"
-              value={qty}
-              onChange={(e) => {
-                const v = parseInt(e.target.value, 10);
-                if (!Number.isNaN(v)) setQty(Math.max(1, Math.min(product.stock, v)));
-              }}
-              aria-label={L.qty}
-              className="h-11 w-20 rounded-full border border-ink/15 bg-paper text-center text-base font-semibold focus:border-gold focus:outline-none"
-            />
-            <span className="text-sm text-muted">{unitLabel(product.unit, t)}</span>
-            <button
-              onClick={onAdd}
-              disabled={out}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {L.addToCart}
-            </button>
-          </div>
+          )}
 
           <a
             href={wa}

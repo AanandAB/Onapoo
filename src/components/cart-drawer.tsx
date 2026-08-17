@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, formatQty, lineTotal } from "@/lib/site";
 
 export function CartDrawer() {
   const { lang, t } = useLang();
@@ -58,15 +58,15 @@ export function CartDrawer() {
                     </p>
                     <div className="mt-1.5 flex items-center gap-2">
                       <button
-                        onClick={() => setQty(item.id, item.qty - 1)}
+                        onClick={() => setQty(item.id, item.unit === "kg" ? Math.max(0.05, item.qty - 0.25) : item.qty - 1)}
                         className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70"
                         aria-label="Decrease"
                       >
                         −
                       </button>
-                      <span className="w-6 text-center text-sm font-semibold">{item.qty}</span>
+                      <span className="min-w-[3.5rem] text-center text-sm font-semibold">{formatQty(item.qty, item.unit)}</span>
                       <button
-                        onClick={() => setQty(item.id, item.qty + 1)}
+                        onClick={() => setQty(item.id, item.qty + (item.unit === "kg" ? 0.25 : 1))}
                         className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70"
                         aria-label="Increase"
                       >
@@ -80,7 +80,7 @@ export function CartDrawer() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm font-semibold">{formatPrice(item.price * item.qty)}</p>
+                  <p className="text-sm font-semibold">{formatPrice(lineTotal(item.price, item.qty))}</p>
                 </li>
               ))}
             </ul>

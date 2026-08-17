@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin, getOrderById } from "@/lib/admin";
 import { updateOrderStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES } from "@/db/schema";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, formatQty, lineTotal } from "@/lib/site";
 import { receiptWaLink } from "@/lib/receipt";
 import { ReceiptPdfButton } from "@/components/receipt-pdf";
 
@@ -49,7 +49,7 @@ export default async function OrderDetailPage({
     deliveryMethod: o.deliveryMethod,
     deliveryDate: o.deliveryDate,
     createdAt: o.createdAt.toISOString(),
-    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, qty: it.qty, price: it.price })),
+    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, unit: it.unit, qty: it.qty, price: it.price })),
     subtotal: o.subtotal,
     discount: o.discount,
     deliveryCharge: o.deliveryCharge,
@@ -133,8 +133,8 @@ export default async function OrderDetailPage({
               <span className="min-w-0 flex-1 truncate">
                 {it.name} <span className="text-muted">{it.nameMl && it.nameMl !== it.name ? `· ${it.nameMl}` : ""}</span>
               </span>
-              <span className="text-muted">× {it.qty}</span>
-              <span className="ml-4 font-medium">{formatPrice(it.price * it.qty)}</span>
+              <span className="text-muted">{formatQty(it.qty, it.unit)}</span>
+              <span className="ml-4 font-medium">{formatPrice(lineTotal(it.price, it.qty))}</span>
             </li>
           ))}
         </ul>

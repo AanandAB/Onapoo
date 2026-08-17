@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK, computeDeliveryCharge, deliveryDistanceKm, DELIVERY_FREE_OVER_AMOUNT, DELIVERY_FREE_RADIUS_KM } from "@/lib/site";
+import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK, computeDeliveryCharge, deliveryDistanceKm, DELIVERY_FREE_OVER_AMOUNT, DELIVERY_FREE_RADIUS_KM, lineTotal, formatQty } from "@/lib/site";
 import { placeOrder, confirmRazorpayPayment, type PlaceOrderResult } from "@/lib/order-actions";
 
 type Status = "idle" | "submitting" | "success";
@@ -568,9 +568,9 @@ export function CheckoutForm({
             {items.map((i) => (
               <li key={i.id} className="flex items-center justify-between gap-2 text-sm">
                 <span className="min-w-0 flex-1 truncate">
-                  {lang === "ml" ? i.nameMl : i.name} <span className="text-muted">× {i.qty}</span>
+                  {lang === "ml" ? i.nameMl : i.name} <span className="text-muted">· {formatQty(i.qty, i.unit)}</span>
                 </span>
-                <span className="font-medium">{formatPrice(i.price * i.qty)}</span>
+                <span className="font-medium">{formatPrice(lineTotal(i.price, i.qty))}</span>
               </li>
             ))}
           </ul>

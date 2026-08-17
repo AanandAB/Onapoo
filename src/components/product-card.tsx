@@ -40,15 +40,20 @@ export function ProductCard({ product }: { product: ProductRow }) {
       ? Math.round((1 - product.price / product.compareAtPrice) * 100)
       : null;
 
+  const isKg = product.unit === "kg";
+
   const onAdd = () => {
     if (out) return;
-    add({
-      id: product.id,
-      name: product.nameEn,
-      nameMl: product.nameMl,
-      unit: product.unit,
-      price: product.price,
-    });
+    add(
+      {
+        id: product.id,
+        name: product.nameEn,
+        nameMl: product.nameMl,
+        unit: product.unit,
+        price: product.price,
+      },
+      isKg ? 0.5 : 1,
+    );
   };
 
   return (
@@ -137,7 +142,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
         ) : (
           <div className="mt-4 flex items-center justify-between gap-1 rounded-full border border-gold/50 bg-gold/10 px-1 py-1">
             <button
-              onClick={() => setQty(product.id, qty - 1)}
+              onClick={() => setQty(product.id, isKg ? Math.max(0.05, qty - 0.25) : qty - 1)}
               aria-label="Decrease"
               className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper text-lg font-semibold text-ink shadow-sm hover:bg-cream-dark"
             >
@@ -148,18 +153,22 @@ export function ProductCard({ product }: { product: ProductRow }) {
                 type="number"
                 min={1}
                 inputMode="numeric"
-                value={qty}
+                value={isKg ? Math.round(qty * 1000) : qty}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
-                  if (!Number.isNaN(v)) setQty(product.id, Math.max(1, Math.min(product.stock, v)));
+                  if (Number.isNaN(v)) return;
+                  setQty(
+                    product.id,
+                    isKg ? Math.max(0.05, Math.min(product.stock, v / 1000)) : Math.max(1, Math.min(product.stock, v)),
+                  );
                 }}
                 aria-label="Quantity"
                 className="w-12 rounded-md bg-paper text-center text-sm font-semibold focus:outline-none"
               />
-              <span className="ml-1 text-muted">{t("in_basket")}</span>
+              <span className="ml-1 text-muted">{isKg ? "g" : t("in_basket")}</span>
             </span>
             <button
-              onClick={() => setQty(product.id, Math.min(product.stock, qty + 1))}
+              onClick={() => setQty(product.id, Math.min(product.stock, qty + (isKg ? 0.25 : 1)))}
               aria-label="Increase"
               className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold text-lg font-semibold text-cream shadow-sm hover:bg-gold-deep"
             >

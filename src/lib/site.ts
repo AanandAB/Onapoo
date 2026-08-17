@@ -24,6 +24,27 @@ export function formatPrice(n: number): string {
   return "₹" + n.toLocaleString("en-IN");
 }
 
+// Line total rounded to the nearest whole rupee (prices are whole rupees, but
+// fractional-kg quantities can otherwise produce paise).
+export function lineTotal(price: number, qty: number): number {
+  return Math.round(price * qty);
+}
+
+export function isKgUnit(unit: string): boolean {
+  return unit === "kg";
+}
+
+// Format a kg weight for display: < 1 kg as grams, >= 1 kg as kg.
+export function formatKgQty(qty: number): string {
+  if (qty < 1) return `${Math.round(qty * 1000)} g`;
+  return `${parseFloat(qty.toFixed(3))} kg`;
+}
+
+// Human quantity for any unit (kg -> weight, others -> whole count).
+export function formatQty(qty: number, unit: string): string {
+  return unit === "kg" ? formatKgQty(qty) : String(Math.round(qty));
+}
+
 export function daysUntilThiruvonam(now: Date = new Date()): number {
   const diff = ONAM_THIRUVONAM.getTime() - now.getTime();
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));

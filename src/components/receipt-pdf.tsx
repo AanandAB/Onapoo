@@ -1,5 +1,7 @@
 "use client";
 
+import { lineTotal, formatQty } from "@/lib/site";
+
 export type ReceiptOrder = {
   orderNumber: string;
   customerName: string;
@@ -10,7 +12,7 @@ export type ReceiptOrder = {
   deliveryMethod: "delivery" | "pickup";
   deliveryDate: string | null;
   createdAt: string;
-  items: { name: string; nameMl?: string; qty: number; price: number }[];
+  items: { name: string; nameMl?: string; unit: string; qty: number; price: number }[];
   subtotal: number;
   discount: number;
   deliveryCharge: number;
@@ -60,8 +62,8 @@ function buildReceiptHtml(order: ReceiptOrder): string {
               : ""
           }
         </td>
-        <td style="padding:5px 0;text-align:right;width:52px;vertical-align:top;">${it.qty}</td>
-        <td style="padding:5px 0;text-align:right;width:112px;vertical-align:top;">${inr(it.price * it.qty)}</td>
+        <td style="padding:5px 0;text-align:right;width:52px;vertical-align:top;">${formatQty(it.qty, it.unit)}</td>
+        <td style="padding:5px 0;text-align:right;width:112px;vertical-align:top;">${inr(lineTotal(it.price, it.qty))}</td>
       </tr>`,
     )
     .join("");

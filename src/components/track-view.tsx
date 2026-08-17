@@ -1,7 +1,7 @@
 "use client";
 
 import { useLang } from "@/lib/i18n";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, formatQty, lineTotal } from "@/lib/site";
 import type { OrderRow } from "@/db/schema";
 
 const STEPS = [
@@ -171,9 +171,9 @@ export function TrackView({
                 {result.items.map((it, i) => (
                   <li key={i} className="flex justify-between text-muted">
                     <span>
-                      {ml ? it.nameMl || it.name : it.name} × {it.qty}
+                      {ml ? it.nameMl || it.name : it.name} {formatQty(it.qty, it.unit)}
                     </span>
-                    <span>{formatPrice(it.price * it.qty)}</span>
+                    <span>{formatPrice(lineTotal(it.price, it.qty))}</span>
                   </li>
                 ))}
               </ul>

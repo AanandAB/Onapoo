@@ -1,5 +1,5 @@
 import type { OrderRow } from "@/db/schema";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, formatQty, lineTotal } from "@/lib/site";
 
 function fmtDate(d: Date): string {
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
@@ -24,7 +24,7 @@ export function buildReceiptMessage(o: OrderRow): string {
   lines.push("*Items*");
   for (const it of o.items) {
     const name = it.nameMl && it.nameMl !== it.name ? `${it.name} (${it.nameMl})` : it.name;
-    lines.push(`• ${name} × ${it.qty} — ${formatPrice(it.price * it.qty)}`);
+    lines.push(`• ${name} ${formatQty(it.qty, it.unit)} — ${formatPrice(lineTotal(it.price, it.qty))}`);
   }
   lines.push("");
   lines.push(`Subtotal: ${formatPrice(o.subtotal)}`);

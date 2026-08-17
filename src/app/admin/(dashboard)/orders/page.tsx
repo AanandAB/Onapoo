@@ -1,7 +1,7 @@
 import { requireAdmin, listOrdersAdmin, getDistinctPincodes, getDistinctDistricts, getDistinctAreas } from "@/lib/admin";
 import { updateOrderStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES, DELIVERY_METHODS, type OrderRow } from "@/db/schema";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, formatQty } from "@/lib/site";
 import { receiptWaLink } from "@/lib/receipt";
 import { ReceiptPdfButton, type ReceiptOrder } from "@/components/receipt-pdf";
 
@@ -35,7 +35,7 @@ function waUrl(phone: string, text: string) {
 }
 
 function customerMsg(o: OrderRow) {
-  const items = o.items.map((i) => `• ${i.name} × ${i.qty}`).join("\n");
+  const items = o.items.map((i) => `• ${i.name} ${formatQty(i.qty, i.unit)}`).join("\n");
   return (
     `Hi ${o.customerName}, your Onapookkal order ${o.orderNumber} is ${STATUS_LABEL[o.orderStatus] ?? o.orderStatus}.\n\n` +
     `${items}\nTotal: ₹${o.total}\n\nThank you! 🌼`
@@ -67,7 +67,7 @@ function toPdfOrder(o: OrderRow): ReceiptOrder {
     deliveryMethod: o.deliveryMethod,
     deliveryDate: o.deliveryDate,
     createdAt: o.createdAt.toISOString(),
-    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, qty: it.qty, price: it.price })),
+    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, unit: it.unit, qty: it.qty, price: it.price })),
     subtotal: o.subtotal,
     discount: o.discount,
     deliveryCharge: o.deliveryCharge,

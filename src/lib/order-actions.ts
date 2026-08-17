@@ -3,7 +3,7 @@
 import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders, products, type DeliveryMethod, type OrderItem } from "@/db/schema";
-import { WHATSAPP_NUMBER, STORE_MAPS_LINK, computeDeliveryCharge } from "@/lib/site";
+import { WHATSAPP_NUMBER, STORE_MAPS_LINK, computeDeliveryCharge, lineTotal, formatQty } from "@/lib/site";
 import { validateCoupon, markCouponUsed } from "@/lib/coupons";
 
 export type PlaceOrderInput = {
@@ -89,7 +89,7 @@ function buildWhatsAppMessage(
   lines.push("");
   lines.push(`${L.items}:`);
   for (const it of items) {
-    lines.push(`• ${it.name}${it.nameMl ? ` (${it.nameMl})` : ""} × ${it.qty} — ₹${it.price * it.qty}`);
+    lines.push(`• ${it.name}${it.nameMl ? ` (${it.nameMl})` : ""} ${formatQty(it.qty, it.unit)} — ₹${lineTotal(it.price, it.qty)}`);
   }
   lines.push("");
   lines.push(`${L.subtotal}: ₹${subtotal}`);
@@ -109,10 +109,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     const deliveryMethod: DeliveryMethod = input.deliveryMethod ?? "delivery";
 
     if (!input.items?.length) return { ok: false, error: "Cart is empty" };
-    const cleanItems = input.items
-      .filter((i) => i.productId && i.qty > 0)
-      .map((i) => ({ productId: i.productId, qty: Math.floor(i.qty) }));
-    if (!cleanItems.length) return { ok: false, error: "Cart is empty" };
+    const rawItems = input.items.filter((i) => i.productId && i.qty > 0);
+    if (!rawItems.length) return { ok: false, error: "Cart is empty" };
 
     if (!input.customerName?.trim() || !input.phone?.trim()) {
       return { ok: false, error: "Please fill name and phone" };
@@ -121,34 +119,39 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       return { ok: false, error: "Please fill address and pincode" };
     }
 
-    // Re-price from DB (never trust client prices)
-    const ids = cleanItems.map((i) => i.productId);
+    // Re-price from DB (never trust client prices). Normalise qty per unit:
+    // kg products keep fractional weight (rounded to grams), others are whole units.
+    const ids = rawItems.map((i) => i.productId);
     const rows = await db.select().from(products).where(inArray(products.id, ids));
     const byId = new Map(rows.map((p) => [p.id, p]));
-    const items: OrderItem[] = cleanItems.map((i) => {
+    const items: OrderItem[] = [];
+    for (const i of rawItems) {
       const p = byId.get(i.productId);
       if (!p) throw new Error("Product not found");
-      return {
+      const qty = p.unit === "kg" ? Math.round(i.qty * 1000) / 1000 : Math.floor(i.qty);
+      if (qty <= 0) continue;
+      items.push({
         productId: p.id,
         name: p.nameEn,
         nameMl: p.nameMl,
         unit: p.unit,
-        qty: i.qty,
+        qty,
         price: p.price,
         costPrice: p.costPrice,
-      };
-    });
+      });
+    }
+    if (!items.length) return { ok: false, error: "Cart is empty" };
 
     // Stock check — block ordering if a product is sold out or short.
     for (const it of items) {
       const p = byId.get(it.productId)!;
       if (p.stock < it.qty) {
         if (p.stock <= 0) return { ok: false, error: `"${p.nameEn}" is sold out` };
-        return { ok: false, error: `Only ${p.stock} × "${p.nameEn}" left in stock` };
+        return { ok: false, error: `Only ${formatQty(p.stock, p.unit)} "${p.nameEn}" left in stock` };
       }
     }
 
-    const subtotal = items.reduce((n, i) => n + i.price * i.qty, 0);
+    const subtotal = items.reduce((n, i) => n + lineTotal(i.price, i.qty), 0);
 
     // Coupon (optional): validate against the phone, apply discount / free delivery.
     let discount = 0;

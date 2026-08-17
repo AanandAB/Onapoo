@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { lineTotal } from "@/lib/site";
 
 export type CartItem = {
   id: string;
@@ -87,7 +88,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CartCtx>(() => {
     const count = items.reduce((n, i) => n + i.qty, 0);
-    const subtotal = items.reduce((n, i) => n + i.qty * i.price, 0);
+    const subtotal = items.reduce((n, i) => n + lineTotal(i.price, i.qty), 0);
     return { items, add, remove, setQty, clear, count, subtotal, open, setOpen, toast };
   }, [items, open, toast]);
 

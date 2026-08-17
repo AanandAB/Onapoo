@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireAdmin, getOrderById } from "@/lib/admin";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, formatQty, lineTotal } from "@/lib/site";
 import { PrintButton } from "@/components/print-button";
 import { ReceiptPdfButton } from "@/components/receipt-pdf";
 
@@ -24,7 +24,7 @@ export default async function ReceiptPage({
     deliveryMethod: o.deliveryMethod,
     deliveryDate: o.deliveryDate,
     createdAt: o.createdAt.toISOString(),
-    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, qty: it.qty, price: it.price })),
+    items: o.items.map((it) => ({ name: it.name, nameMl: it.nameMl, unit: it.unit, qty: it.qty, price: it.price })),
     subtotal: o.subtotal,
     discount: o.discount,
     deliveryCharge: o.deliveryCharge,
@@ -112,8 +112,8 @@ export default async function ReceiptPage({
                     <span className="text-muted"> · {it.nameMl}</span>
                   ) : null}
                 </td>
-                <td className="py-2.5 text-center text-muted">{it.qty}</td>
-                <td className="py-2.5 text-right">{formatPrice(it.price * it.qty)}</td>
+                <td className="py-2.5 text-center text-muted">{formatQty(it.qty, it.unit)}</td>
+                <td className="py-2.5 text-right">{formatPrice(lineTotal(it.price, it.qty))}</td>
               </tr>
             ))}
           </tbody>

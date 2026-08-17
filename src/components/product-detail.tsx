@@ -31,7 +31,8 @@ export function ProductDetail({
   const { add } = useCart();
   const isKg = product.unit === "kg";
   const [qty, setQty] = useState(1); // non-kg: whole-unit count
-  const [grams, setGrams] = useState(500); // kg: weight in grams
+  const [amount, setAmount] = useState(500); // kg: typed weight
+  const [kgUnit, setKgUnit] = useState<"g" | "kg">("g"); // kg: unit selection
   const [imgErr, setImgErr] = useState(false);
   const [active, setActive] = useState(0);
 
@@ -48,7 +49,7 @@ export function ProductDetail({
       ? Math.round((1 - product.price / product.compareAtPrice) * 100)
       : null;
 
-  const amountQty = isKg ? grams / 1000 : qty;
+  const amountQty = isKg ? (kgUnit === "kg" ? amount : amount / 1000) : qty;
 
   const wa = whatsappLink(
     ml
@@ -176,35 +177,40 @@ export function ProductDetail({
                   {formatPrice(lineTotal(product.price, amountQty))}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {[250, 500, 750, 1000, 2000].map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => setGrams(Math.min(g, (product.stock || 1) * 1000))}
-                    className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                      grams === g ? "border-gold bg-gold text-cream" : "border-ink/15 bg-paper text-ink/70 hover:bg-cream"
-                    }`}
-                  >
-                    {g >= 1000 ? `${g / 1000} kg` : `${g} g`}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <input
                   type="number"
-                  min={50}
-                  step={50}
-                  inputMode="numeric"
-                  value={grams}
+                  min={1}
+                  step="any"
+                  inputMode="decimal"
+                  value={amount}
                   onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!Number.isNaN(v)) setGrams(Math.max(50, Math.min((product.stock || 1) * 1000, v)));
+                    const v = parseFloat(e.target.value);
+                    if (Number.isNaN(v) || v <= 0) return;
+                    const max = kgUnit === "kg" ? product.stock || 1 : (product.stock || 1) * 1000;
+                    setAmount(Math.min(max, v));
                   }}
-                  aria-label="Weight in grams"
+                  aria-label="Weight"
                   className="h-11 w-24 rounded-full border border-ink/15 bg-paper text-center text-base font-semibold focus:border-gold focus:outline-none"
                 />
-                <span className="text-sm text-muted">{ml ? "ഗ്രാം" : "grams"}</span>
+                <div className="flex items-center rounded-full border border-ink/15 bg-paper p-1">
+                  {(["g", "kg"] as const).map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => {
+                        if (u === kgUnit) return;
+                        setAmount(u === "kg" ? amount / 1000 : amount * 1000);
+                        setKgUnit(u);
+                      }}
+                      className={`rounded-full px-3 py-1 text-sm font-semibold transition-colors ${
+                        kgUnit === u ? "bg-gold text-cream" : "text-ink/60 hover:text-ink"
+                      }`}
+                    >
+                      {u}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={onAdd}
                   disabled={out}

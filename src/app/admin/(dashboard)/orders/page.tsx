@@ -1,5 +1,5 @@
 import { requireAdmin, listOrdersAdmin, getDistinctPincodes, getDistinctDistricts, getDistinctAreas } from "@/lib/admin";
-import { updateOrderStatus } from "@/app/admin/actions";
+import { updateOrderStatus, setPaymentStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES, DELIVERY_METHODS, type OrderRow } from "@/db/schema";
 import { formatPrice, formatQty } from "@/lib/site";
 import { receiptWaLink } from "@/lib/receipt";
@@ -277,6 +277,16 @@ export default async function OrdersPage({
                     >
                       {o.paymentStatus}
                     </p>
+                    {o.paymentStatus === "pending" && (
+                      <form action={setPaymentStatus} className="mt-1">
+                        <input type="hidden" name="id" value={o.id} />
+                        <input type="hidden" name="paymentStatus" value="paid" />
+                        <input type="hidden" name="returnTo" value="/admin/orders" />
+                        <button className="rounded-full bg-leaf px-2.5 py-1 text-xs font-semibold text-cream hover:bg-leaf-deep">
+                          ✓ Paid
+                        </button>
+                      </form>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <form action={updateOrderStatus} className="flex items-center gap-1.5">

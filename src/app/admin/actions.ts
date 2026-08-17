@@ -329,6 +329,24 @@ export async function updateOrderStatus(formData: FormData): Promise<void> {
   redirect("/admin/orders");
 }
 
+// Mark an order's payment as received (or revert). "returnTo" lets the form
+// decide where to redirect after saving.
+export async function setPaymentStatus(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = str(formData, "id");
+  const status = str(formData, "paymentStatus");
+  const returnTo = str(formData, "returnTo") ?? "/admin/orders";
+  if (id && status && ["paid", "pending", "failed"].includes(status)) {
+    await getDb()
+      .update(orders)
+      .set({ paymentStatus: status as PaymentStatus })
+      .where(eq(orders.id, id));
+  }
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${id}`);
+  redirect(returnTo);
+}
+
 export type ManualOrderItem = { name: string; nameMl?: string; qty: number; price: number };
 export type ManualOrderInput = {
   customerName: string;

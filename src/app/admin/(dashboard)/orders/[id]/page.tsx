@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireAdmin, getOrderById } from "@/lib/admin";
-import { updateOrderStatus } from "@/app/admin/actions";
+import { updateOrderStatus, setPaymentStatus } from "@/app/admin/actions";
 import { ORDER_STATUSES } from "@/db/schema";
 import { formatPrice, formatQty, lineTotal } from "@/lib/site";
 import { receiptWaLink } from "@/lib/receipt";
@@ -117,7 +117,26 @@ export default async function OrderDetailPage({
             {o.notes && <div className="flex justify-between"><dt className="text-muted">Notes</dt><dd className="text-right font-medium">{o.notes}</dd></div>}
           </dl>
 
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
+            {o.paymentStatus !== "paid" ? (
+              <form action={setPaymentStatus}>
+                <input type="hidden" name="id" value={o.id} />
+                <input type="hidden" name="paymentStatus" value="paid" />
+                <input type="hidden" name="returnTo" value={`/admin/orders/${o.id}`} />
+                <button className="rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-cream hover:bg-leaf-deep">
+                  ✓ Mark payment received
+                </button>
+              </form>
+            ) : (
+              <form action={setPaymentStatus}>
+                <input type="hidden" name="id" value={o.id} />
+                <input type="hidden" name="paymentStatus" value="pending" />
+                <input type="hidden" name="returnTo" value={`/admin/orders/${o.id}`} />
+                <button className="rounded-full border border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:bg-cream">
+                  ↩ Mark unpaid
+                </button>
+              </form>
+            )}
             <a href={wa} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white">
               WhatsApp customer
             </a>

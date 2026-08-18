@@ -1,33 +1,42 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
-import { DEFAULT_ORDERING_START, isOrderingOpenFor, formatOrderingDate } from "@/lib/site";
+import { DEFAULT_ORDERING_START, formatOrderingDate } from "@/lib/site";
 
 type SiteConfig = {
   orderingStart: string;
+  // Computed on the server and passed down as a prop so the client never calls
+  // `new Date()` during render — avoids a hydration mismatch on the boundary day.
+  orderingOpen: boolean;
 };
 
-const SiteConfigCtx = createContext<SiteConfig>({ orderingStart: DEFAULT_ORDERING_START });
+const SiteConfigCtx = createContext<SiteConfig>({
+  orderingStart: DEFAULT_ORDERING_START,
+  orderingOpen: false,
+});
 
 export function SiteConfigProvider({
   orderingStart,
+  orderingOpen,
   children,
 }: {
   orderingStart?: string | null;
+  orderingOpen?: boolean;
   children: ReactNode;
 }) {
-  const value: SiteConfig = { orderingStart: orderingStart?.trim() || DEFAULT_ORDERING_START };
+  const value: SiteConfig = {
+    orderingStart: orderingStart?.trim() || DEFAULT_ORDERING_START,
+    orderingOpen: orderingOpen ?? false,
+  };
   return <SiteConfigCtx.Provider value={value}>{children}</SiteConfigCtx.Provider>;
 }
 
-// Whether ordering is currently open, using the admin-configurable date.
+// Whether ordering is currently open (computed server-side; stable on client).
 export function useOrderingOpen(): boolean {
-  const { orderingStart } = useContext(SiteConfigCtx);
-  return isOrderingOpenFor(orderingStart);
+  return useContext(SiteConfigCtx).orderingOpen;
 }
 
 // Human label for the ordering-open date, e.g. "21 August".
 export function useOrderingOpenLabel(): string {
-  const { orderingStart } = useContext(SiteConfigCtx);
-  return formatOrderingDate(orderingStart);
+  return formatOrderingDate(useContext(SiteConfigCtx).orderingStart);
 }

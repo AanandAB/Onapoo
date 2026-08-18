@@ -42,7 +42,15 @@ export function formatOrderingDate(iso: string | null | undefined): string {
 }
 
 export function formatPrice(n: number): string {
-  return "₹" + n.toLocaleString("en-IN");
+  // Deterministic Indian-style digit grouping (no Intl/ICU), so the server and
+  // client always render identical price strings (avoids hydration mismatches).
+  const num = Math.round(n);
+  const sign = num < 0 ? "-" : "";
+  const s = String(Math.abs(num));
+  const last3 = s.slice(-3);
+  const rest = s.slice(0, -3);
+  const grouped = rest ? rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + last3 : last3;
+  return "₹" + sign + grouped;
 }
 
 // Line total rounded to the nearest whole rupee (prices are whole rupees, but

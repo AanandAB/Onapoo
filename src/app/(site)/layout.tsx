@@ -1,4 +1,5 @@
 import { getStoreSettings } from "@/lib/queries";
+import { isOrderingOpenFor } from "@/lib/site";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { CartDrawer } from "@/components/cart-drawer";
@@ -13,9 +14,12 @@ export const dynamic = "force-dynamic";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const settings = await getStoreSettings();
+  // Resolve ordering-open on the server so client components never render with a
+  // time-dependent value (which would cause a hydration mismatch).
+  const orderingOpen = isOrderingOpenFor(settings.orderingStart);
 
   return (
-    <SiteConfigProvider orderingStart={settings.orderingStart}>
+    <SiteConfigProvider orderingStart={settings.orderingStart} orderingOpen={orderingOpen}>
       <ScrollProgress />
       <AnnouncementBar en={settings.announcementEn} ml={settings.announcementMl} />
       <Header storeName={settings.storeName} storeNameMl={settings.storeNameMl} />

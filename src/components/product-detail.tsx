@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, whatsappLink, STORE_MAPS_LINK, DELIVERY_FREE_RADIUS_KM, DELIVERY_FREE_OVER_AMOUNT, lineTotal, formatQty } from "@/lib/site";
+import { formatPrice, whatsappLink, STORE_MAPS_LINK, DELIVERY_FREE_RADIUS_KM, DELIVERY_FREE_OVER_AMOUNT, lineTotal, formatQty, isOrderingOpen } from "@/lib/site";
 import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
 
@@ -30,6 +30,7 @@ export function ProductDetail({
   const { lang, t } = useLang();
   const { add } = useCart();
   const isKg = product.unit === "kg";
+  const orderingOpen = isOrderingOpen();
   const [qty, setQty] = useState(1); // non-kg: whole-unit count
   const [amount, setAmount] = useState(500); // kg: typed weight
   const [kgUnit, setKgUnit] = useState<"g" | "kg">("g"); // kg: unit selection
@@ -73,6 +74,7 @@ export function ProductDetail({
         qty: "എണ്ണം",
         out: "തീർന്നു",
         pickUp: "കടയിൽ നിന്ന് എടുക്കാം",
+        opens: "ഓർഡറുകൾ 21 മുതൽ",
       }
     : {
         back: "All flowers",
@@ -83,6 +85,7 @@ export function ProductDetail({
         qty: "Qty",
         out: "Sold out",
         pickUp: "Store pickup",
+        opens: "Ordering opens 21 Aug",
       };
 
   return (
@@ -213,11 +216,11 @@ export function ProductDetail({
                 </div>
                 <button
                   onClick={onAdd}
-                  disabled={out}
+                  disabled={out || !orderingOpen}
                   className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50"
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  {L.addToCart}
+                  {!orderingOpen ? L.opens : L.addToCart}
                 </button>
               </div>
             </div>
@@ -255,11 +258,11 @@ export function ProductDetail({
               <span className="text-sm text-muted">{unitLabel(product.unit, t)}</span>
               <button
                 onClick={onAdd}
-                disabled={out}
+                disabled={out || !orderingOpen}
                 className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50"
               >
                 <ShoppingCart className="h-4 w-4" />
-                {L.addToCart}
+                {!orderingOpen ? L.opens : L.addToCart}
               </button>
             </div>
           )}

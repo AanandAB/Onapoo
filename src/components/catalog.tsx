@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { isOrderingOpen } from "@/lib/site";
 import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/motion";
 import type { ProductRow, CategoryRow } from "@/lib/queries";
@@ -54,6 +55,11 @@ export function Catalog({
             {sorted.length} {lang === "ml" ? "ഇനങ്ങൾ" : "items"}
           </p>
         </div>
+
+        <p className="-mt-4 mb-6 text-sm text-muted">
+          {lang === "ml" ? "നിരക്കുകൾ ദിവസവും മാറുന്നു" : "Rates are dynamic and change every day"}
+          {!isOrderingOpen() && (lang === "ml" ? " · ഓർഡറുകൾ 21 മുതൽ" : " · ordering opens 21 August")}
+        </p>
 
         {/* Search */}
         <div className="relative mb-6">

@@ -20,6 +20,14 @@ export const DELIVERY_FLAT_FALLBACK = 30; // flat charge when no location is sha
 export const ONAM_ATHAM = new Date("2026-08-17T00:00:00+05:30");
 export const ONAM_THIRUVONAM = new Date("2026-08-26T00:00:00+05:30");
 
+// Ordering opens 21 Aug (announced on the site). Before this customers can
+// browse but cannot place orders.
+export const ORDERING_START = new Date("2026-08-21T00:00:00+05:30");
+
+export function isOrderingOpen(now: Date = new Date()): boolean {
+  return now.getTime() >= ORDERING_START.getTime();
+}
+
 export function formatPrice(n: number): string {
   return "₹" + n.toLocaleString("en-IN");
 }

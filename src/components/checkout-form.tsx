@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK, computeDeliveryCharge, deliveryDistanceKm, DELIVERY_FREE_OVER_AMOUNT, DELIVERY_FREE_RADIUS_KM, lineTotal, formatQty } from "@/lib/site";
+import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK, computeDeliveryCharge, deliveryDistanceKm, DELIVERY_FREE_OVER_AMOUNT, DELIVERY_FREE_RADIUS_KM, lineTotal, formatQty, isOrderingOpen } from "@/lib/site";
 import { placeOrder, confirmRazorpayPayment, type PlaceOrderResult } from "@/lib/order-actions";
 
 type Status = "idle" | "submitting" | "success";
@@ -22,6 +22,7 @@ export function CheckoutForm({
   const { lang, t } = useLang();
   const { items, subtotal, clear } = useCart();
   const ml = lang === "ml";
+  const orderingOpen = isOrderingOpen();
 
   const [form, setForm] = useState({
     name: "",
@@ -338,6 +339,12 @@ export function CheckoutForm({
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <h1 className="font-display text-3xl font-semibold sm:text-4xl">{labels.title}</h1>
 
+      {!orderingOpen && (
+        <p className="mt-4 rounded-xl border border-gold bg-gold/10 px-4 py-3 text-sm font-semibold text-gold-deep">
+          {ml ? "ഓർഡറുകൾ ആഗസ്റ്റ് 21 മുതൽ മാത്രം" : "Ordering opens 21 August — please check back then."}
+        </p>
+      )}
+
       <form onSubmit={submit} className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
         {/* Left: details */}
         <div className="space-y-4">
@@ -550,7 +557,7 @@ export function CheckoutForm({
 
           <button
             type="submit"
-            disabled={status === "submitting"}
+            disabled={status === "submitting" || !orderingOpen}
             className="w-full rounded-full bg-leaf py-4 text-sm font-semibold text-cream shadow-soft transition-transform hover:-translate-y-0.5 disabled:opacity-60"
           >
             {status === "submitting"

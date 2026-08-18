@@ -7,6 +7,7 @@ import { AnnouncementBar } from "@/components/announcement";
 import { ScrollProgress } from "@/components/motion";
 import { BottomNav } from "@/components/bottom-nav";
 import { CartBar } from "@/components/cart-bar";
+import { SiteConfigProvider } from "@/components/site-config";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const settings = await getStoreSettings();
 
   return (
-    <>
+    <SiteConfigProvider orderingStart={settings.orderingStart}>
       <ScrollProgress />
       <AnnouncementBar en={settings.announcementEn} ml={settings.announcementMl} />
       <Header storeName={settings.storeName} storeNameMl={settings.storeNameMl} />
@@ -24,6 +25,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <CartToast />
       <BottomNav />
       <CartBar />
-    </>
+    </SiteConfigProvider>
   );
 }

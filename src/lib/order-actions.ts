@@ -3,7 +3,8 @@
 import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders, products, type DeliveryMethod, type OrderItem } from "@/db/schema";
-import { WHATSAPP_NUMBER, STORE_MAPS_LINK, computeDeliveryCharge, lineTotal, formatQty, isOrderingOpen } from "@/lib/site";
+import { WHATSAPP_NUMBER, STORE_MAPS_LINK, computeDeliveryCharge, lineTotal, formatQty, isOrderingOpenFor, formatOrderingDate } from "@/lib/site";
+import { getStoreSettings } from "@/lib/queries";
 import { validateCoupon, markCouponUsed } from "@/lib/coupons";
 
 export type PlaceOrderInput = {
@@ -108,8 +109,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     const db = getDb();
     const deliveryMethod: DeliveryMethod = input.deliveryMethod ?? "delivery";
 
-    if (!isOrderingOpen()) {
-      return { ok: false, error: "Ordering opens on 21 August — please check back then!" };
+    const settings = await getStoreSettings();
+    if (!isOrderingOpenFor(settings.orderingStart)) {
+      return { ok: false, error: `Ordering opens on ${formatOrderingDate(settings.orderingStart)} — please check back then!` };
     }
 
     if (!input.items?.length) return { ok: false, error: "Cart is empty" };

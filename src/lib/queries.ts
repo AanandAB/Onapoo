@@ -50,6 +50,7 @@ export async function getStoreSettings() {
     deliveryCharge: parseInt(s.delivery_charge ?? "0", 10) || 0,
     announcementEn: s.announcement_en ?? "",
     announcementMl: s.announcement_ml ?? "",
+    orderingStart: s.ordering_start ?? null,
   };
 }
 

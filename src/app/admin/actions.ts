@@ -18,6 +18,7 @@ import {
   orders,
   products,
   purchases,
+  settings,
   vendors,
   ORDER_STATUSES,
   type DeliveryMethod,
@@ -345,6 +346,27 @@ export async function setPaymentStatus(formData: FormData): Promise<void> {
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
   redirect(returnTo);
+}
+
+// ---- Settings ---- //
+
+export async function saveSettings(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const db = getDb();
+  const entries: [string, string][] = [
+    ["ordering_start", str(formData, "orderingStart") ?? ""],
+    ["announcement_en", str(formData, "announcementEn") ?? ""],
+    ["announcement_ml", str(formData, "announcementMl") ?? ""],
+  ];
+  for (const [key, value] of entries) {
+    await db
+      .insert(settings)
+      .values({ key, value, updatedAt: new Date() })
+      .onConflictDoUpdate({ target: settings.key, set: { value, updatedAt: new Date() } });
+  }
+  revalidatePath("/");
+  revalidatePath("/admin/settings");
+  redirect("/admin/settings");
 }
 
 export type ManualOrderItem = { name: string; nameMl?: string; qty: number; price: number };

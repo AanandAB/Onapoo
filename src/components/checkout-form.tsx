@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK, computeDeliveryCharge, deliveryDistanceKm, DELIVERY_FREE_OVER_AMOUNT, DELIVERY_FREE_RADIUS_KM, lineTotal, formatQty, isOrderingOpen } from "@/lib/site";
+import { formatPrice, ONAM_THIRUVONAM, STORE_MAPS_LINK, computeDeliveryCharge, deliveryDistanceKm, DELIVERY_FREE_OVER_AMOUNT, DELIVERY_FREE_RADIUS_KM, lineTotal, formatQty } from "@/lib/site";
+import { useOrderingOpen, useOrderingOpenLabel } from "@/components/site-config";
 import { placeOrder, confirmRazorpayPayment, type PlaceOrderResult } from "@/lib/order-actions";
 
 type Status = "idle" | "submitting" | "success";
@@ -22,7 +23,8 @@ export function CheckoutForm({
   const { lang, t } = useLang();
   const { items, subtotal, clear } = useCart();
   const ml = lang === "ml";
-  const orderingOpen = isOrderingOpen();
+  const orderingOpen = useOrderingOpen();
+  const orderingLabel = useOrderingOpenLabel();
 
   const [form, setForm] = useState({
     name: "",
@@ -341,7 +343,7 @@ export function CheckoutForm({
 
       {!orderingOpen && (
         <p className="mt-4 rounded-xl border border-gold bg-gold/10 px-4 py-3 text-sm font-semibold text-gold-deep">
-          {ml ? "ഓർഡറുകൾ ആഗസ്റ്റ് 21 മുതൽ മാത്രം" : "Ordering opens 21 August — please check back then."}
+          {ml ? `ഓർഡറുകൾ ${orderingLabel} മുതൽ മാത്രം` : `Ordering opens ${orderingLabel} — please check back then.`}
         </p>
       )}
 

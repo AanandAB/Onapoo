@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
-import { formatPrice, whatsappLink, STORE_MAPS_LINK, DELIVERY_FREE_RADIUS_KM, DELIVERY_FREE_OVER_AMOUNT, lineTotal, formatQty, isOrderingOpen } from "@/lib/site";
+import { formatPrice, whatsappLink, STORE_MAPS_LINK, DELIVERY_FREE_RADIUS_KM, DELIVERY_FREE_OVER_AMOUNT, lineTotal, formatQty } from "@/lib/site";
+import { useOrderingOpen, useOrderingOpenLabel } from "@/components/site-config";
 import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
 
@@ -30,7 +31,8 @@ export function ProductDetail({
   const { lang, t } = useLang();
   const { add } = useCart();
   const isKg = product.unit === "kg";
-  const orderingOpen = isOrderingOpen();
+  const orderingOpen = useOrderingOpen();
+  const orderingLabel = useOrderingOpenLabel();
   const [qty, setQty] = useState(1); // non-kg: whole-unit count
   const [amount, setAmount] = useState(500); // kg: typed weight
   const [kgUnit, setKgUnit] = useState<"g" | "kg">("g"); // kg: unit selection
@@ -74,7 +76,7 @@ export function ProductDetail({
         qty: "എണ്ണം",
         out: "തീർന്നു",
         pickUp: "കടയിൽ നിന്ന് എടുക്കാം",
-        opens: "ഓർഡറുകൾ 21 മുതൽ",
+        opens: `ഓർഡറുകൾ ${orderingLabel} മുതൽ`,
       }
     : {
         back: "All flowers",
@@ -85,7 +87,7 @@ export function ProductDetail({
         qty: "Qty",
         out: "Sold out",
         pickUp: "Store pickup",
-        opens: "Ordering opens 21 Aug",
+        opens: `Ordering opens ${orderingLabel}`,
       };
 
   return (

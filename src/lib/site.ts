@@ -20,12 +20,20 @@ export const DELIVERY_FLAT_FALLBACK = 30; // flat charge when no location is sha
 export const ONAM_ATHAM = new Date("2026-08-17T00:00:00+05:30");
 export const ONAM_THIRUVONAM = new Date("2026-08-26T00:00:00+05:30");
 
-// Ordering opens 21 Aug (announced on the site). Before this customers can
-// browse but cannot place orders.
-export const ORDERING_START = new Date("2026-08-21T00:00:00+05:30");
+// Ordering opens from this date (configurable in the admin Settings page).
+export const DEFAULT_ORDERING_START = "2026-08-21"; // ISO date, Asia/Kolkata
 
-export function isOrderingOpen(now: Date = new Date()): boolean {
-  return now.getTime() >= ORDERING_START.getTime();
+export function isOrderingOpenFor(startIso: string | null | undefined, now: Date = new Date()): boolean {
+  const iso = startIso && startIso.trim() ? startIso.trim() : DEFAULT_ORDERING_START;
+  const start = new Date(iso + "T00:00:00+05:30");
+  return now.getTime() >= start.getTime();
+}
+
+// "21 August" — human label for the ordering-open date (for notices).
+export function formatOrderingDate(iso: string | null | undefined): string {
+  const s = iso && iso.trim() ? iso.trim() : DEFAULT_ORDERING_START;
+  const d = new Date(s + "T00:00:00+05:30");
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "long" });
 }
 
 export function formatPrice(n: number): string {

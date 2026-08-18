@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
 import { useTilt } from "@/components/motion";
-import { formatPrice, isOrderingOpen } from "@/lib/site";
+import { formatPrice } from "@/lib/site";
+import { useOrderingOpen, useOrderingOpenLabel } from "@/components/site-config";
 import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
 
@@ -41,7 +42,8 @@ export function ProductCard({ product }: { product: ProductRow }) {
       : null;
 
   const isKg = product.unit === "kg";
-  const orderingOpen = isOrderingOpen();
+  const orderingOpen = useOrderingOpen();
+  const orderingLabel = useOrderingOpenLabel();
 
   const onAdd = () => {
     if (out || !orderingOpen) return;
@@ -139,7 +141,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
             disabled
             className="mt-4 w-full cursor-not-allowed rounded-full bg-ink/10 py-2.5 text-sm font-semibold text-ink/50"
           >
-            {lang === "ml" ? "ഓർഡറുകൾ 21 മുതൽ" : "Ordering opens 21 Aug"}
+            {lang === "ml" ? `ഓർഡറുകൾ ${orderingLabel} മുതൽ` : `Ordering opens ${orderingLabel}`}
           </button>
         ) : qty === 0 ? (
           <button

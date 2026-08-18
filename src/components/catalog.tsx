@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLang } from "@/lib/i18n";
-import { isOrderingOpen } from "@/lib/site";
+import { useOrderingOpen, useOrderingOpenLabel } from "@/components/site-config";
 import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/motion";
 import type { ProductRow, CategoryRow } from "@/lib/queries";
@@ -15,6 +15,8 @@ export function Catalog({
   categories: CategoryRow[];
 }) {
   const { lang, t } = useLang();
+  const orderingOpen = useOrderingOpen();
+  const orderingLabel = useOrderingOpenLabel();
   const [active, setActive] = useState<string>("all");
   const [query, setQuery] = useState("");
 
@@ -58,7 +60,7 @@ export function Catalog({
 
         <p className="-mt-4 mb-6 text-sm text-muted">
           {lang === "ml" ? "നിരക്കുകൾ ദിവസവും മാറുന്നു" : "Rates are dynamic and change every day"}
-          {!isOrderingOpen() && (lang === "ml" ? " · ഓർഡറുകൾ 21 മുതൽ" : " · ordering opens 21 August")}
+          {!orderingOpen && (lang === "ml" ? ` · ഓർഡറുകൾ ${orderingLabel} മുതൽ` : ` · ordering opens ${orderingLabel}`)}
         </p>
 
         {/* Search */}

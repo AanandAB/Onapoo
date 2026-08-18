@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -50,20 +50,34 @@ export function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
+    // Hide only via JS (progressive enhancement): if hydration/JS ever fails,
+    // the content stays visible instead of leaving the page blank.
+    el.classList.add("reveal-hidden");
+    let io: IntersectionObserver | null = null;
+    let fallback: ReturnType<typeof setTimeout> | null = null;
+    const reveal = () => {
+      if (!el.classList.contains("reveal-hidden")) return;
+      el.classList.remove("reveal-hidden");
+      el.classList.add("revealed");
+      io?.disconnect();
+      if (fallback) clearTimeout(fallback);
+    };
+    io = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          el.classList.add("revealed");
-          io.disconnect();
-        }
+        if (entries[0].isIntersecting) reveal();
       },
       { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
     );
     io.observe(el);
-    return () => io.disconnect();
+    // Safety net: never leave content hidden if the observer fails to fire.
+    fallback = setTimeout(reveal, 2500);
+    return () => {
+      io?.disconnect();
+      if (fallback) clearTimeout(fallback);
+    };
   }, []);
 
   const variantCls =

@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { categories, products, settings, orders, type OrderRow } from "@/db/schema";
 
@@ -15,12 +15,17 @@ export async function getProducts(): Promise<ProductRow[]> {
   return db
     .select()
     .from(products)
+    .where(eq(products.hidden, false))
     .orderBy(asc(products.sortOrder), asc(products.nameEn));
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductRow | undefined> {
   const db = getDb();
-  const rows = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
+  const rows = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.slug, slug), eq(products.hidden, false)))
+    .limit(1);
   return rows[0];
 }
 
@@ -29,7 +34,7 @@ export async function getFeaturedProducts(): Promise<ProductRow[]> {
   return db
     .select()
     .from(products)
-    .where(eq(products.isFeatured, true))
+    .where(and(eq(products.isFeatured, true), eq(products.hidden, false)))
     .orderBy(asc(products.sortOrder));
 }
 

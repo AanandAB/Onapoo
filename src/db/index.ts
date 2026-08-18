@@ -4,12 +4,15 @@ import * as schema from "./schema";
 
 export function getDb() {
   const { env } = getCloudflareContext();
-  return drizzle(env.DB, { schema });
+  // 'first-primary' anchors reads to the D1 primary (strong consistency), so
+  // admin price/stock writes appear on the storefront immediately instead of
+  // waiting for read-replica replication.
+  return drizzle(env.DB.withSession("first-primary") as unknown as typeof env.DB, { schema });
 }
 
 export async function getDbAsync() {
   const { env } = await getCloudflareContext({ async: true });
-  return drizzle(env.DB, { schema });
+  return drizzle(env.DB.withSession("first-primary") as unknown as typeof env.DB, { schema });
 }
 
 export type Db = ReturnType<typeof getDb>;

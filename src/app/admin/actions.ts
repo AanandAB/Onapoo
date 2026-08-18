@@ -117,6 +117,7 @@ export async function saveProduct(formData: FormData): Promise<void> {
     compareAtPrice: num(formData, "compareAtPrice"),
     stock: num(formData, "stock") ?? 0,
     isFeatured: bool(formData, "isFeatured"),
+    hidden: bool(formData, "hidden"),
     sortOrder: num(formData, "sortOrder") ?? 0,
     image: images[0] ?? null,
     images: images.length ? images : null,
@@ -137,6 +138,21 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = str(formData, "id");
   if (id) await getDb().delete(products).where(eq(products.id, id));
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+  redirect("/admin/products");
+}
+
+// Quick hide/show toggle from the products list.
+export async function toggleProductHidden(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = str(formData, "id");
+  if (!id) return;
+  const db = getDb();
+  const [p] = await db.select().from(products).where(eq(products.id, id)).limit(1);
+  if (p) {
+    await db.update(products).set({ hidden: !p.hidden }).where(eq(products.id, id));
+  }
   revalidatePath("/admin/products");
   revalidatePath("/");
   redirect("/admin/products");

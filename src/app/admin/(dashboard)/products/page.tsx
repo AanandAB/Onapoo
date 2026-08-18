@@ -4,7 +4,7 @@ import {
   listCategories,
   getProductById,
 } from "@/lib/admin";
-import { saveProduct, deleteProduct } from "@/app/admin/actions";
+import { saveProduct, deleteProduct, toggleProductHidden } from "@/app/admin/actions";
 import { PRODUCT_UNITS, LOW_STOCK_THRESHOLD, type ProductRow, type CategoryRow } from "@/db/schema";
 import { GalleryPicker } from "@/components/gallery-picker";
 import { formatPrice } from "@/lib/site";
@@ -87,6 +87,11 @@ export default async function ProductsPage({
                         <p className="font-semibold">
                           {p.nameEn}
                           {p.isFeatured && <span className="ml-1 text-gold">★</span>}
+                          {p.hidden && (
+                            <span className="ml-2 rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                              Hidden
+                            </span>
+                          )}
                         </p>
                         <p className="text-xs text-muted">{p.nameMl}</p>
                       </div>
@@ -109,6 +114,12 @@ export default async function ProductsPage({
                       >
                         Edit
                       </a>
+                      <form action={toggleProductHidden}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <button className="rounded-full border border-marigold/40 px-3 py-1.5 text-xs font-semibold text-marigold-deep hover:bg-marigold/10">
+                          {p.hidden ? "Show" : "Hide"}
+                        </button>
+                      </form>
                       <form action={deleteProduct}>
                         <input type="hidden" name="id" value={p.id} />
                         <button className="rounded-full border border-chethi/30 px-3 py-1.5 text-xs font-semibold text-chethi hover:bg-chethi/5">
@@ -229,6 +240,12 @@ function ProductForm({
           <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
             <input type="checkbox" name="isFeatured" defaultChecked={item ? item.isFeatured : false} className="h-4 w-4 accent-gold-deep" />
             Featured (★)
+          </label>
+        </div>
+        <div className="flex items-end">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" name="hidden" defaultChecked={item ? item.hidden : false} className="h-4 w-4 accent-chethi" />
+            Hidden (hide from store)
           </label>
         </div>
       </div>

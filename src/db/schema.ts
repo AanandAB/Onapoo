@@ -113,6 +113,9 @@ export const products = sqliteTable(
     isFeatured: integer("is_featured", { mode: "boolean" })
       .notNull()
       .default(false),
+    hidden: integer("hidden", { mode: "boolean" })
+      .notNull()
+      .default(false), // hidden products are excluded from the storefront
     sortOrder: integer("sort_order").notNull().default(0),
     image: text("image"), // primary image (URL or data URL)
     images: text("images", { mode: "json" }).$type<string[]>(), // full gallery (includes primary)

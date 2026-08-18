@@ -30,10 +30,15 @@ export function isOrderingOpenFor(startIso: string | null | undefined, now: Date
 }
 
 // "21 August" — human label for the ordering-open date (for notices).
+// Parses the ISO string directly (no timezone conversion) so it never shifts a
+// day on UTC servers.
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 export function formatOrderingDate(iso: string | null | undefined): string {
   const s = iso && iso.trim() ? iso.trim() : DEFAULT_ORDERING_START;
-  const d = new Date(s + "T00:00:00+05:30");
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "long" });
+  const [, m, d] = s.split("-").map((n) => parseInt(n, 10));
+  if (!m || !d || m < 1 || m > 12) return s; // malformed -> show raw value
+  return `${d} ${MONTHS[m - 1]}`;
 }
 
 export function formatPrice(n: number): string {

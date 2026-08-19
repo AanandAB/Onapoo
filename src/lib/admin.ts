@@ -83,6 +83,7 @@ export async function listPurchases(): Promise<PurchaseWithVendor[]> {
 
 export type ProfitReport = {
   revenue: number;
+  totalDiscounts: number;
   cogs: number;
   grossProfit: number;
   totalExpenses: number;
@@ -160,6 +161,9 @@ export async function getProfitReport(): Promise<ProfitReport> {
 
   return {
     revenue,
+    totalDiscounts: allOrders
+      .filter((o) => o.orderStatus !== "cancelled")
+      .reduce((s, o) => s + (o.discount ?? 0), 0),
     cogs,
     grossProfit: revenue - cogs,
     totalExpenses,

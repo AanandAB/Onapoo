@@ -81,8 +81,14 @@ export function ProfitReportView({ report }: { report: ProfitReport }) {
   return (
     <div>
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         <StatCard label="Revenue" value={report.revenue} accent="text-gold-deep" />
+        <StatCard
+          label="Discounts given"
+          value={report.totalDiscounts}
+          accent="text-muted"
+          negative={report.totalDiscounts > 0}
+        />
         <StatCard label="Cost of goods" value={report.cogs} accent="text-chethi" />
         <StatCard
           label="Gross profit"

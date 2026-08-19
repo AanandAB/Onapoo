@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
 import { useTilt } from "@/components/motion";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, lineTotal } from "@/lib/site";
 import { useOrderingOpen, useOrderingOpenLabel } from "@/components/site-config";
 import { LOW_STOCK_THRESHOLD } from "@/db/schema";
 import type { ProductRow } from "@/lib/queries";
@@ -27,6 +27,8 @@ export function ProductCard({ product }: { product: ProductRow }) {
   const { lang, t } = useLang();
   const { add, setQty, items } = useCart();
   const [imgErr, setImgErr] = useState(false);
+  const [budget, setBudget] = useState("");
+  const [budgetFocused, setBudgetFocused] = useState(false);
   const { ref, onMouseMove, onMouseLeave } = useTilt(7);
 
   const name = lang === "ml" ? product.nameMl : product.nameEn;
@@ -151,7 +153,8 @@ export function ProductCard({ product }: { product: ProductRow }) {
             {t("add_to_cart")}
           </button>
         ) : (
-          <div className="mt-4 flex items-center justify-between gap-1 rounded-full border border-gold/50 bg-gold/10 px-1 py-1">
+          <div className="mt-4 space-y-1.5">
+            <div className="flex items-center justify-between gap-1 rounded-full border border-gold/50 bg-gold/10 px-1 py-1">
             <button
               onClick={() => setQty(product.id, isKg ? Math.max(0.05, qty - 0.25) : qty - 1)}
               aria-label="Decrease"
@@ -185,6 +188,47 @@ export function ProductCard({ product }: { product: ProductRow }) {
             >
               +
             </button>
+          </div>
+
+          {/* Live line total */}
+          <p className="mt-1.5 text-right text-xs font-semibold text-leaf-deep sm:text-sm">
+            {isKg
+              ? `${Math.round(qty * 1000)} g = ${formatPrice(lineTotal(product.price, qty))}`
+              : `${qty} × ${formatPrice(lineTotal(product.price, qty))}`}
+          </p>
+
+          {/* Budget → grams (kg products) */}
+          {isKg && (
+            <div className="mt-1.5 flex items-center gap-2 rounded-full border border-gold/30 bg-paper px-3 py-1.5">
+              <span className="shrink-0 text-[11px] font-semibold text-muted">Spend ₹</span>
+              <input
+                type="number"
+                min={0}
+                inputMode="decimal"
+                placeholder="100"
+                value={budgetFocused ? budget : qty > 0 ? String(lineTotal(product.price, qty)) : ""}
+                onFocus={() => {
+                  setBudgetFocused(true);
+                  setBudget(qty > 0 ? String(lineTotal(product.price, qty)) : "");
+                }}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setBudget(v);
+                  const amt = parseFloat(v);
+                  if (!Number.isNaN(amt) && amt > 0 && product.price > 0) {
+                    const grams = Math.max(1, Math.round((amt / product.price) * 1000));
+                    setQty(product.id, Math.min(product.stock, grams / 1000));
+                  }
+                }}
+                onBlur={() => setBudgetFocused(false)}
+                className="w-16 min-w-0 bg-transparent text-center text-sm font-semibold focus:outline-none"
+                aria-label="Amount to spend"
+              />
+              <span className="shrink-0 text-[11px] text-muted">
+                {qty > 0 ? `≈ ${Math.round(qty * 1000)} g` : "→ grams"}
+              </span>
+            </div>
+          )}
           </div>
         )}
       </div>

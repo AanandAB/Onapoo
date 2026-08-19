@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onapookkal · ഓണപ്പൂക്കൾ — Architecture &amp; Feature Guide</title>
+<style>
+  :root {
+    --ink: #2a2114;
+    --muted: #6b5f4b;
+    --gold: #c79a3b;
+    --gold-deep: #a97c1f;
+    --leaf: #166534;
+    --chethi: #b83a2b;
+    --cream: #faf4e6;
+    --paper: #ffffff;
+    --line: #e6dcc4;
+  }
+  @page { size: A4; margin: 16mm 15mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    line-height: 1.62;
+    font-size: 13px;
+    margin: 0;
+  }
+  h1, h2, h3, h4 { font-family: Georgia, "Times New Roman", serif; line-height: 1.25; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 20px; margin: 0 0 10px; color: var(--leaf); border-bottom: 2px solid var(--gold); padding-bottom: 5px; }
+  h3 { font-size: 15px; margin: 18px 0 6px; color: var(--gold-deep); }
+  h4 { font-size: 13px; margin: 14px 0 4px; color: var(--ink); }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+    font-size: 11.5px;
+  }
+  code { background: #f3ecdb; padding: 1px 5px; border-radius: 3px; color: #7a4a1f; }
+  pre {
+    background: #f7f2e6; border: 1px solid var(--line); border-left: 3px solid var(--gold);
+    padding: 10px 12px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;
+    margin: 8px 0;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 11.5px; }
+  th, td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: var(--cream); color: var(--gold-deep); font-weight: 600; }
+  tr:nth-child(even) td { background: #fcf9f1; }
+  .section { page-break-before: always; }
+  .section:first-of-type { page-break-before: avoid; }
+  .cover { text-align: center; padding: 30px 0 8px; }
+  .cover .tag { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-deep); }
+  .cover h1 { font-size: 30px; margin: 8px 0 2px; }
+  .cover .sub { color: var(--muted); font-size: 14px; }
+  .meta { margin: 18px auto 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 10px 0; display: flex; flex-wrap: wrap; gap: 4px 28px; justify-content: center; font-size: 12px; color: var(--muted); }
+  .meta b { color: var(--ink); }
+  .note {
+    background: #fdf6e7; border: 1px solid var(--line); border-left: 4px solid var(--gold);
+    padding: 8px 12px; border-radius: 4px; margin: 10px 0; font-size: 12px;
+  }
+  .warn {
+    background: #fbeae7; border: 1px solid #f0c9c0; border-left: 4px solid var(--chethi);
+    padding: 8px 12px; border-radius: 4px; margin: 10px 0; font-size: 12px;
+  }
+  .flow { counter-reset: step; margin: 8px 0; padding-left: 0; list-style: none; }
+  .flow li {
+    counter-increment: step; position: relative; padding-left: 34px; margin: 6px 0;
+  }
+  .flow li::before {
+    content: counter(step); position: absolute; left: 0; top: 1px;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--leaf); color: #fff;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .kv { display: grid; grid-template-columns: 190px 1fr; gap: 2px 12px; font-size: 12px; }
+  .kv div { padding: 2px 0; }
+  .kv .k { color: var(--muted); font-weight: 600; }
+  .toc { columns: 2; font-size: 12px; }
+  .toc a { text-decoration: none; color: var(--ink); }
+  .toc li { margin: 2px 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; vertical-align: middle; }
+  .b-store { background: #e7f3ea; color: var(--leaf); }
+  .b-admin { background: #fdf0e2; color: #a05c0f; }
+  .b-sys { background: #ece9f3; color: #5b4a8a; }
+  .small { font-size: 11px; color: var(--muted); }
+  footer { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 11px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<div class="cover">
+  <div class="tag">Technical Documentation</div>
+  <h1>Onapookkal <span style="color:var(--gold-deep)">· ഓണപ്പൂക്കൾ</span></h1>
+  <div class="sub">Complete architecture &amp; feature guide — how every part of the site works</div>
+  <div class="meta">
+    <span><b>Storefront</b> https://onapookkal.store</span>
+    <span><b>Admin</b> /admin</span>
+    <span><b>Repo</b> github.com/AanandAB/Onapoo</span>
+    <span><b>Generated</b> August 2026</span>
+  </div>
+</div>
+
+<h3 style="margin-top:22px;">What this document covers</h3>
+<p>
+  This is a complete reference for the Onapookkal seasonal flower shop — the system
+  architecture, the data model, and a deep walk-through of every customer-facing and
+  admin feature, including exactly how coupons, delivery charging, order placement,
+  the delivery map, and profit &amp; loss work under the hood.
+</p>
+
+<nav>
+  <h4>Contents</h4>
+  <ol class="toc">
+    <li>1. Overview &amp; tech stack</li>
+    <li>2. Deployment architecture</li>
+    <li>3. Data model (D1 schema)</li>
+    <li>4. Rendering model &amp; hydration safety</li>
+    <li>5. Storefront features</li>
+    <li>6. Checkout, delivery &amp; payments</li>
+    <li>7. Coupons (in depth)</li>
+    <li>8. Order lifecycle</li>
+    <li>9. Admin panel (in depth)</li>
+    <li>10. Delivery map</li>
+    <li>11. Reports &amp; Profit &amp; Loss</li>
+    <li>12. API routes</li>
+    <li>13. Security model</li>
+    <li>14. Build, deploy &amp; operations</li>
+  </ol>
+</nav>
+
+<!-- ===================== 1. OVERVIEW ===================== -->
+<div class="section">
+<h2>1. Overview &amp; Tech Stack</h2>
+<p>
+  Onapookkal is a seasonal e-commerce site selling fresh Onam pookalam flowers across
+  Kannur, Kerala. It is bilingual (English + മലയാളം), runs entirely on Cloudflare's
+  edge network, and ships with a full admin/CRM backend so the shop can be run
+  day-to-day without external tooling.
+</p>
+<table>
+  <tr><th>Layer</th><th>Technology</th></tr>
+  <tr><td>Frontend framework</td><td>Next.js 16 (App Router) + React 19.2</td></tr>
+  <tr><td>Language</td><td>TypeScript</td></tr>
+  <tr><td>Styling</td><td>Tailwind CSS 4</td></tr>
+  <tr><td>Hosting</td><td>Cloudflare Workers (edge) via @opennextjs/cloudflare 1.20</td></tr>
+  <tr><td>Database</td><td>Cloudflare D1 (SQLite) via Drizzle ORM 0.45</td></tr>
+  <tr><td>Object storage</td><td>R2 (optional — image uploads); images also stored as static assets or base64 in D1</td></tr>
+  <tr><td>Animation</td><td>GSAP 3 + Lenis (smooth scroll)</td></tr>
+  <tr><td>Icons / map</td><td>lucide-react · Leaflet 1.9 (OpenStreetMap)</td></tr>
+  <tr><td>PDF receipts</td><td>jsPDF + html2canvas-pro (client-side)</td></tr>
+  <tr><td>Fonts</td><td>Playfair Display, Plus Jakarta Sans, JetBrains Mono (bundled locally, offline)</td></tr>
+</table>
+<div class="note">
+  <b>Why Cloudflare Workers?</b> The whole app (including Server Components and route
+  handlers) executes at Cloudflare's edge, close to the customer, with zero server
+  management. D1 is a globally-distributed SQLite — the only dependency to keep track of.
+</div>
+</div>
+
+<!-- ===================== 2. ARCHITECTURE ===================== -->
+<div class="section">
+<h2>2. Deployment Architecture</h2>
+<pre>
+                        ┌──────────────────────────────────────────────┐
+                        │        Cloudflare Workers (edge, global)      │
+                        │                                              │
+  Browser ──HTTPS──────▶│  Next.js 16 App Router (OpenNext adapter)     │
+   (customer/admin)     │   ├─ Server Components / route handlers       │
+                        │   ├─ Static assets (_next/static, /public)    │
+                        │   └─ Middleware (www→apex redirect)           │
+                        └──────────────┬───────────────────────────────┘
+                                       │ SQL (Drizzle ORM)
+                                       ▼
+                        ┌──────────────────────────────┐   ┌─────────────┐
+                        │  D1  (SQLite, onapookkal-db) │   │  R2 "MEDIA" │
+                        │  · products · orders · …     │   │  (optional) │
+                        └──────────────────────────────┘   └─────────────┘
+</pre>
+<ul>
+  <li><b>Single Worker</b> serves both the public storefront (<code>/</code>, <code>/shop/…</code>, <code>/checkout</code>, <code>/track</code>) and the admin panel (<code>/admin/*</code>).</li>
+  <li><b>Custom domain</b> <code>onapookkal.store</code> (+ <code>www</code> alias) with a <code>workers.dev</code> fallback <code>onapookkal.aanandab44.workers.dev</code>.</li>
+  <li><b>Middleware</b> does one job: 301-redirect <code>www.onapookkal.store → onapookkal.store</code> (page routes only).</li>
+  <li><b>D1 binding</b> <code>env.DB</code>; <b>assets binding</b> <code>env.ASSETS</code>; optional <b>R2 binding</b> <code>env.MEDIA</code>.</li>
+  <li>All storefront + admin pages are <code>force-dynamic</code> (server-rendered per request) so prices/stock are always live — no CDN caching of page HTML.</li>
+</ul>
+<h3>Request lifecycle (a storefront page load)</h3>
+<ol class="flow">
+  <li>Request hits the Worker; middleware redirects <code>www</code> if present.</li>
+  <li>The page's async Server Component runs: reads <code>settings</code>, <code>categories</code>, <code>products</code> from D1.</li>
+  <li>Server-rendered HTML (with the React Flight payload) is streamed to the browser.</li>
+  <li>Client hydrates; client components (cart, i18n, countdown, filters) become interactive.</li>
+  <li>Subsequent reads (D1) use a <code>first-primary</code> session so the admin's just-saved changes appear immediately.</li>
+</ol>
+</div>
+
+<!-- ===================== 3. DATA MODEL ===================== -->
+<div class="section">
+<h2>3. Data Model (D1 Schema)</h2>
+<p>Eleven tables, defined in <code>src/db/schema.ts</code> with Drizzle ORM. IDs are UUIDs (<code>crypto.randomUUID()</code>); timestamps are Unix epochs.</p>
+
+<h3>categories</h3>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td><code>id</code></td><td>text (PK)</td><td>UUID</td></tr>
+  <tr><td><code>slug</code></td><td>text (unique)</td><td>e.g. <code>traditional</code>, <code>kits</code></td></tr>
+  <tr><td><code>name_en</code> / <code>name_ml</code></td><td>text</td><td>Bilingual display name</td></tr>
+  <tr><td><code>color</code></td><td>text</td><td>Hex swatch for the filter pill dot</td></tr>
+  <tr><td><code>sort_order</code></td><td>integer</td><td>Order of pills</td></tr>
+</table>
+
+<h3>products</h3>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td><code>id</code></td><td>text (PK)</td><td>UUID</td></tr>
+  <tr><td><code>slug</code></td><td>text (unique)</td><td>URL slug (<code>/shop/&lt;slug&gt;</code>)</td></tr>
+  <tr><td><code>name_en</code>/<code>name_ml</code>, <code>color_en</code>/<code>color_ml</code>, <code>description_en</code>/<code>description_ml</code></td><td>text</td><td>Bilingual content</td></tr>
+  <tr><td><code>category_id</code></td><td>text (FK)</td><td>→ categories.id</td></tr>
+  <tr><td><code>unit</code></td><td>text</td><td><code>bunch</code> · <code>kg</code> · <code>packet</code> · <code>kit</code> · <code>piece</code></td></tr>
+  <tr><td><code>price</code></td><td>integer</td><td>Selling price (₹, whole rupees, per unit)</td></tr>
+  <tr><td><code>cost_price</code></td><td>integer</td><td>Buying cost (₹/unit) — drives profit</td></tr>
+  <tr><td><code>compare_at_price</code></td><td>integer?</td><td>Strike-through "was" price → discount %</td></tr>
+  <tr><td><code>stock</code></td><td>integer</td><td>Available quantity (0 = sold out)</td></tr>
+  <tr><td><code>is_featured</code></td><td>boolean</td><td>★ + sorts first</td></tr>
+  <tr><td><code>hidden</code></td><td>boolean</td><td>Hidden from storefront (still in admin)</td></tr>
+  <tr><td><code>sort_order</code></td><td>integer</td><td>Within-featured ordering</td></tr>
+  <tr><td><code>image</code></td><td>text?</td><td>Primary image (static path or base64 data URL)</td></tr>
+  <tr><td><code>images</code></td><td>json</td><td>Gallery array (includes primary)</td></tr>
+</table>
+
+<h3>orders</h3>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td><code>id</code>, <code>order_number</code></td><td>text</td><td>UUID + human code <code>ONM-&lt;base36&gt;</code></td></tr>
+  <tr><td><code>customer_name</code>, <code>phone</code>, <code>email</code></td><td>text</td><td>Contact</td></tr>
+  <tr><td><code>address</code>, <code>pincode</code>, <code>district</code>, <code>area</code>, <code>landmark</code></td><td>text</td><td>Delivery details</td></tr>
+  <tr><td><code>delivery_method</code></td><td>text</td><td><code>delivery</code> · <code>pickup</code></td></tr>
+  <tr><td><code>location</code></td><td>text?</td><td><code>"lat,lng"</code> when the customer shares location</td></tr>
+  <tr><td><code>delivery_date</code></td><td>text?</td><td>ISO date string</td></tr>
+  <tr><td><code>items</code></td><td>json</td><td>Array of <code>{productId, name, nameMl, unit, qty, price, costPrice}</code></td></tr>
+  <tr><td><code>subtotal</code>, <code>delivery_charge</code>, <code>discount</code>, <code>total</code></td><td>integer</td><td>Money (₹)</td></tr>
+  <tr><td><code>coupon_code</code></td><td>text?</td><td>Applied coupon, if any</td></tr>
+  <tr><td><code>payment_method</code></td><td>text</td><td><code>cod</code> · <code>whatsapp</code> · <code>razorpay</code></td></tr>
+  <tr><td><code>payment_status</code></td><td>text</td><td><code>pending</code> · <code>paid</code> · <code>failed</code></td></tr>
+  <tr><td><code>order_status</code></td><td>text</td><td><code>new → confirmed → packed → out_for_delivery → delivered</code> / <code>cancelled</code></td></tr>
+  <tr><td><code>razorpay_order_id</code>, <code>razorpay_payment_id</code></td><td>text?</td><td>Online-payment refs</td></tr>
+  <tr><td><code>notes</code></td><td>text?</td><td>Free text</td></tr>
+</table>
+
+<h3>Other tables</h3>
+<table>
+  <tr><th>Table</th><th>Key columns</th><th>Purpose</th></tr>
+  <tr><td><code>coupons</code></td><td><code>code</code> (PK), <code>type</code>, <code>value</code>, <code>phone</code>, <code>used</code></td><td>Single-use promo codes</td></tr>
+  <tr><td><code>offers</code></td><td><code>title_en/ml</code>, <code>type</code>, <code>value</code>, <code>active</code>, <code>start_at</code>, <code>end_at</code>, <code>product_ids</code></td><td>Percent / flat site offers</td></tr>
+  <tr><td><code>admins</code></td><td><code>username</code>, <code>password_hash</code></td><td>Admin login</td></tr>
+  <tr><td><code>settings</code></td><td><code>key</code> (PK), <code>value</code></td><td>Key/value store (ordering date, announcements, store name…)</td></tr>
+  <tr><td><code>expenses</code></td><td><code>label</code>, <code>amount</code>, <code>created_at</code></td><td>Overhead → P&amp;L</td></tr>
+  <tr><td><code>vendors</code></td><td><code>name</code>, <code>phone</code>, <code>location</code>, <code>supplies</code>, <code>active</code></td><td>Suppliers</td></tr>
+  <tr><td><code>purchases</code></td><td><code>vendor_id</code>, <code>item</code>, <code>quantity</code>, <code>cost</code></td><td>Stock purchases → P&amp;L</td></tr>
+</table>
+</div>
+
+<!-- ===================== 4. RENDERING ===================== -->
+<div class="section">
+<h2>4. Rendering Model &amp; Hydration Safety</h2>
+<p>
+  Pages are <b>server-rendered per request</b> (<code>export const dynamic = "force-dynamic"</code>),
+  then hydrated on the client. Because the server (Cloudflare, UTC) and the browser
+  (Kannur, IST) can disagree on time and locale, the code deliberately avoids
+  non-deterministic values during render — a class of bug that otherwise causes
+  React hydration mismatches (blank sections, dead buttons).
+</p>
+<h3>Patterns used</h3>
+<ul>
+  <li><b>Countdown</b> — starts as a stable <code>00:00:00:00</code> placeholder; <code>Date.now()</code> is only called inside a <code>useEffect</code> (client-side), so server and client render identically.</li>
+  <li><b>"Ordering opens" gate</b> — the open/closed boolean is computed <b>on the server</b> in the layout and passed down as a prop; client components never call <code>new Date()</code> during render.</li>
+  <li><b>Price formatting</b> — a deterministic Indian digit-grouping function (no <code>Intl</code>/ICU), so ₹ formatting is byte-identical on server and client.</li>
+  <li><b>Scroll reveal</b> — content is visible by default; JS adds a "hidden" class and animates it in (progressive enhancement). If JS fails, the page still shows everything.</li>
+  <li><b>i18n &amp; cart state</b> — read from <code>localStorage</code> only inside <code>useEffect</code> (after hydration), never during render.</li>
+</ul>
+</div>
+
+<!-- ===================== 5. STOREFRONT ===================== -->
+<div class="section">
+<h2>5. Storefront Features</h2>
+
+<h3>5.1 Bilingual UI (English ↔ മലയാളം)</h3>
+<p>
+  A <code>LanguageProvider</code> (React context) holds the current language. All strings
+  live in one <code>STRINGS</code> dictionary (<code>src/lib/i18n.tsx</code>). The toggle
+  (top-right) flips the language and persists the choice to <code>localStorage["onam_lang"]</code>;
+  the same preference is restored on the next visit. Product content (names, colours,
+  descriptions) is stored per-language in D1, so shop data is translated independently of UI strings.
+</p>
+
+<h3>5.2 Hero &amp; Thiruvonam countdown</h3>
+<p>
+  An animated pookalam (GSAP: petals assemble on load, parallax on scroll) plus a live
+  countdown to Thiruvonam. Onam 2026: Atham <b>17 Aug</b> → Thiruvonam <b>26 Aug</b>.
+  The countdown is hydration-safe (see §4).
+</p>
+
+<h3>5.3 Catalog — categories, search, sorting</h3>
+<p>
+  The catalog (<code>src/components/catalog.tsx</code>) renders every visible product in a
+  responsive grid with:
+</p>
+<ul>
+  <li><b>Category filter pills</b> — "All" + one pill per category (with its colour dot). Clicking sets an <code>active</code> category; the grid filters client-side on <code>product.categoryId</code>.</li>
+  <li><b>Search box</b> — filters on <code>nameEn</code>, <code>nameMl</code>, <code>colorEn</code>, <code>colorMl</code> (case-insensitive). Search and category combine (AND).</li>
+  <li><b>Sorting</b> — featured (★) products first, then <code>sort_order</code>.</li>
+  <li><b>Hidden products</b> are excluded from the storefront by the D1 queries themselves (not just the UI), so a hidden product also 404s on its detail page.</li>
+</ul>
+
+<h3>5.4 Product card</h3>
+<ul>
+  <li>Image (lazy-loaded) with a fallback glyph; −% discount badge (from <code>compare_at_price</code>); ★ featured mark; "Only N left" low-stock warning; sold-out overlay.</li>
+  <li>3D tilt on mouse-move (CSS transform).</li>
+  <li>Unit price with <code>/ kg</code>, <code>/ bunch</code> etc. via <code>unitLabel</code>.</li>
+</ul>
+
+<h3>5.5 Dynamic kg pricing (grams ↔ rupees)</h3>
+<p>For <code>unit === "kg"</code> products, the card shows a quantity stepper in grams plus two linked controls:</p>
+<ul>
+  <li><b>Grams → price</b> — as the customer types grams (or taps −/+), a live line total shows: <code>500 g = ₹170</code> (computed as <code>round(price × qty)</code>, where <code>qty</code> is in kg).</li>
+  <li><b>₹ → grams</b> — a "Spend ₹ ___" box reverse-calculates: <code>grams = round(budget / price × 1000)</code>, clamped to available stock. ₹340 on a ₹340/kg flower → 1000 g.</li>
+  <li>The two fields are two-way synced (a "focused" flag decides which direction is being edited, avoiding input fights).</li>
+  <li>Quantities are stored as fractions of a kg in the cart; non-kg products use whole units.</li>
+</ul>
+
+<h3>5.6 Cart</h3>
+<p>
+  A slide-in drawer (<code>cart-drawer.tsx</code>) backed by a <code>CartProvider</code>. Cart items
+  persist to <code>localStorage["onam_cart"]</code> and survive reloads. Quantity can be edited in
+  the drawer; a mobile "view cart" bar and bottom nav keep the cart reachable on phones.
+  Adding an item shows a toast rather than opening the drawer, so customers can keep browsing.
+</p>
+
+<h3>5.7 Ordering window (gate)</h3>
+<p>
+  Customers can always browse and search, but ordering is blocked until the
+  admin-configured <code>ordering_start</code> date (default <b>21 Aug 2026</b>). Until then the
+  Add-to-cart button is replaced with "Ordering opens 21 August". The check is enforced
+  server-side in <code>placeOrder</code> too, so it can't be bypassed from the browser.
+</p>
+</div>
+
+<!-- ===================== 6. CHECKOUT ===================== -->
+<div class="section">
+<h2>6. Checkout, Delivery &amp; Payments</h2>
+
+<h3>6.1 Delivery charge (distance-based)</h3>
+<p>Computed with the Haversine formula from the store's coordinates (11.8314722, 75.5517778):</p>
+<pre>
+free  ≤ 7 km from the store
+₹20 base + ₹5 per extra km beyond 7 km
+free  on orders ≥ ₹2,000 (subtotal)
+₹30   flat fallback when the customer shares no location
+</pre>
+<p>The charge is computed <b>server-side</b> (never trusts a client number). Pickup orders skip the charge entirely.</p>
+
+<h3>6.2 Location &amp; pincode</h3>
+<ul>
+  <li><b>"Share my location"</b> — captures the browser geolocation as <code>"lat,lng"</code>, stored on the order so the delivery map gets an exact pin.</li>
+  <li><b>Pincode lookup</b> (<code>/api/pincode</code>) — auto-fills district/area from the entered pincode (served from a local lookup).</li>
+  <li>Without a shared location, the delivery map falls back to geocoding the pincode.</li>
+</ul>
+
+<h3>6.3 Payment methods</h3>
+<ul>
+  <li><b>Cash on Delivery</b> — order is created with <code>payment_status: pending</code>.</li>
+  <li><b>Pay on WhatsApp</b> — order is created and a pre-filled WhatsApp message is opened; payment is settled manually.</li>
+  <li><b>Razorpay (online)</b> — hidden unless <code>RAZORPAY_KEY_ID</code>/<code>RAZORPAY_KEY_SECRET</code> are set. The server creates a Razorpay order (amount in paise) and verifies the payment signature with HMAC-SHA256 before marking it paid.</li>
+</ul>
+
+<h3>6.4 Order tracking</h3>
+<p>
+  <code>/track</code> lets a customer enter their order number + phone to see a live status
+  timeline and a printable receipt. This is a read-only, customer-facing view of the
+  order's <code>order_status</code>.
+</p>
+</div>
+
+<!-- ===================== 7. COUPONS ===================== -->
+<div class="section">
+<h2>7. Coupons (in depth)</h2>
+<p>Coupons live in the <code>coupons</code> table and are the site's main promo mechanism.</p>
+
+<h3>7.1 Types</h3>
+<table>
+  <tr><th>Type</th><th><code>value</code></th><th>Effect</th></tr>
+  <tr><td><code>percent</code></td><td>1–100</td><td><code>discount = round(subtotal × value / 100)</code></td></tr>
+  <tr><td><code>flat</code></td><td>₹</td><td><code>discount = min(value, subtotal)</code> (never exceeds subtotal)</td></tr>
+  <tr><td><code>free_delivery</code></td><td>0</td><td>Delivery charge set to ₹0 (no ₹ discount)</td></tr>
+</table>
+
+<h3>7.2 Properties</h3>
+<ul>
+  <li><b>Single-use</b> — a <code>used</code> boolean; once redeemed it can't be used again.</li>
+  <li><b>Phone-bound</b> — each coupon is tied to a normalized phone number (digits only, leading <code>91</code> stripped). Validation fails if the checkout phone doesn't match.</li>
+</ul>
+
+<h3>7.3 Code generation</h3>
+<p>
+  Codes are 8 characters from an ambiguity-free alphabet (no <code>0/O/1/I/L</code>):
+  <code>ABCDEFGHJKMNPQRSTUVWXYZ23456789</code>, generated with <code>crypto.getRandomValues</code>.
+  Two generators exist: the in-admin generator and a standalone Python GUI
+  (<code>coupon_generator.py</code>).
+</p>
+
+<h3>7.4 Redemption flow (checkout)</h3>
+<ol class="flow">
+  <li>Customer types a code + their phone at checkout.</li>
+  <li>The client calls <code>GET /api/coupon?code=…&amp;phone=…&amp;subtotal=…</code> for a <b>live preview</b> — this validates but does <b>not</b> mark it used.</li>
+  <li>The discount (and/or free-delivery flag) is shown immediately on the totals.</li>
+  <li>On submit, <code>placeOrder</code> re-validates server-side (phone match, not-yet-used, computes discount from the re-priced subtotal).</li>
+  <li>The discount is stored on the order (<code>discount</code>, <code>coupon_code</code>); the coupon is then marked <code>used</code>.</li>
+</ol>
+<div class="note">
+  <b>Why re-validate server-side?</b> The preview call could be tampered with. The
+  authoritative discount is always recomputed inside <code>placeOrder</code> using the
+  server's own subtotal, so a manipulated client can't mint a bigger discount.
+</div>
+
+<h3>7.5 Coupons in Profit &amp; Loss</h3>
+<p>
+  Revenue in the P&amp;L is <code>subtotal − discount</code> (delivery fees are pass-through, not
+  profit). A dedicated <b>"Discounts given"</b> line now surfaces the total coupon discount
+  across all non-cancelled orders, so the owner sees exactly how much was given away.
+</p>
+</div>
+
+<!-- ===================== 8. ORDER LIFECYCLE ===================== -->
+<div class="section">
+<h2>8. Order Lifecycle</h2>
+
+<h3>8.1 Placement (server-side <code>placeOrder</code>)</h3>
+<ol class="flow">
+  <li><b>Gate check</b> — reject if ordering hasn't opened yet.</li>
+  <li><b>Input validation</b> — items present; name + phone; address + pincode for delivery.</li>
+  <li><b>Re-pricing</b> — fetch each product from D1 and rebuild the order items from the DB (client prices/qty are ignored). kg quantities are rounded to grams; others floored to whole units.</li>
+  <li><b>Stock check</b> — block if a product is sold out or the requested quantity exceeds stock.</li>
+  <li><b>Compute money</b> — <code>subtotal = Σ round(price × qty)</code>; apply coupon; compute delivery charge; <code>total = subtotal − discount + deliveryCharge</code>.</li>
+  <li><b>Persist</b> — insert the order (order number <code>ONM-&lt;base36 timestamp&gt;</code>).</li>
+  <li><b>Reserve stock</b> — decrement each product's stock by the ordered quantity.</li>
+  <li><b>Consume coupon</b> — mark it used (if applied).</li>
+  <li><b>Razorpay</b> — if online payment, create the payment order and store its ID.</li>
+  <li><b>Return</b> — order summary + a pre-filled WhatsApp message URL to the shop.</li>
+</ol>
+
+<h3>8.2 WhatsApp confirmation</h3>
+<p>
+  Every order opens a pre-filled <code>wa.me</code> message to <b>+91 70340 26295</b> with the
+  order number, customer details, itemized list (with per-item totals), subtotal,
+  discount, delivery charge and total — bilingual based on the customer's language.
+</p>
+
+<h3>8.3 Status workflow &amp; restock</h3>
+<p>
+  <code>new → confirmed → packed → out_for_delivery → delivered</code> (or <code>cancelled</code>).
+  The admin changes status from the orders list. Moving an order <b>into</b> "cancelled"
+  automatically <b>restocks</b> each item (only on the transition, so re-saving a cancelled
+  order never double-restocks). Manual orders (empty <code>productId</code>) never reserved stock
+  and are skipped.
+</p>
+</div>
+
+<!-- ===================== 9. ADMIN ===================== -->
+<div class="section">
+<h2>9. Admin Panel (in depth)</h2>
+
+<h3>9.1 Authentication</h3>
+<ul>
+  <li><b>Password hashing</b> — PBKDF2-SHA256, 100,000 iterations, random 16-byte salt, stored as <code>pbkdf2$iterations$salt$hash</code>. Verification uses a constant-time compare.</li>
+  <li><b>Session</b> — a signed token (<code>payload.signature</code>, base64url, HMAC-SHA256) with a 7-day expiry, stored in an <code>httpOnly</code> cookie <code>onapookkal_session</code>.</li>
+  <li><b>Signing secret</b> — <code>AUTH_SECRET</code>, a Worker secret binding (not <code>process.env</code>); a dev fallback is used only when no Cloudflare context exists.</li>
+  <li><b>Guards</b> — <code>requireAdmin()</code> on every admin page and action; route handlers check <code>getSession()</code> and return 401.</li>
+</ul>
+
+<h3>9.2 Products</h3>
+<p>
+  Full CRUD with bilingual names, price / cost / compare-at price, stock, featured,
+  <b>hidden</b> (a per-row Hide/Show button + a "HIDDEN" badge), sort order, unit, and images.
+  Images can be a URL, a static path, or a browser-compressed base64 data URL stored in
+  D1 (no R2 required). An optional R2 upload path (<code>/api/upload</code> → <code>/media/&lt;key&gt;</code>)
+  exists for larger files but is disabled unless the <code>MEDIA</code> binding is configured.
+</p>
+
+<h3>9.3 Offers</h3>
+<p>Percentage or flat site-wide offers with an active flag and optional date range / per-product targeting (<code>product_ids</code>).</p>
+
+<h3>9.4 Coupons (admin)</h3>
+<p>List codes with used/unused state, delete, and generate new ones bound to a phone number.</p>
+
+<h3>9.5 Orders (CRM)</h3>
+<ul>
+  <li>Full list with <b>status filters + search</b>; change status / payment status inline.</li>
+  <li><b>Send receipt on WhatsApp</b> — pre-filled itemized message.</li>
+  <li><b>PDF bill</b> — a printable receipt (client-side jsPDF + html2canvas-pro) at <code>/admin/orders/[id]/receipt</code>.</li>
+  <li><b>CSV export</b> of all orders (<code>/api/admin/export-orders</code>).</li>
+  <li><b>Manual order entry</b> — for walk-in / phone orders; uses the admin product list (so it can sell hidden products too) and never reserves stock.</li>
+</ul>
+
+<h3>9.6 Vendors, purchases, expenses</h3>
+<ul>
+  <li><b>Vendors</b> — supplier directory (name, phone, location, what they supply, active flag).</li>
+  <li><b>Purchases</b> — log of stock bought (vendor, item, quantity, cost).</li>
+  <li><b>Expenses</b> — overhead (fuel, packing, labour, rent) that feeds the P&amp;L.</li>
+</ul>
+
+<h3>9.7 Settings</h3>
+<p>Ordering-open date, and the top announcement bar (English + Malayalam). Stored in the key/value <code>settings</code> table.</p>
+</div>
+
+<!-- ===================== 10. DELIVERY MAP ===================== -->
+<div class="section">
+<h2>10. Delivery Map (in depth)</h2>
+<p>
+  <code>/admin/map</code> plots every pending home-delivery order on a Leaflet map with
+  OpenStreetMap tiles, so the shop can plan a day's route.
+</p>
+<ol class="flow">
+  <li>Fetch all orders where <code>delivery_method = "delivery"</code>, then keep those not yet <code>delivered</code> or <code>cancelled</code>.</li>
+  <li>For each order, resolve a coordinate:
+    <ul>
+      <li><b>Exact</b> — if the customer shared a location, parse <code>location</code> (<code>"lat,lng"</code>) and use it directly.</li>
+      <li><b>Approximate</b> — otherwise geocode the <code>pincode</code> via Nominatim (OpenStreetMap) and flag the pin as approximate.</li>
+    </ul>
+  </li>
+  <li>Orders that resolve to a coordinate are plotted as pins (exact vs approximate visual distinction).</li>
+  <li>Orders that can't be geocoded (missing/invalid pincode) are listed as "unplotted" alongside the map.</li>
+</ol>
+<div class="note">
+  The location share in checkout exists precisely to make these pins exact — pincode
+  geocoding is only a fallback and can be off by neighbourhood-level accuracy.
+</div>
+</div>
+
+<!-- ===================== 11. P&L ===================== -->
+<div class="section">
+<h2>11. Reports &amp; Profit &amp; Loss</h2>
+
+<h3>11.1 Reports (<code>/admin/reports</code>)</h3>
+<ul>
+  <li>Total &amp; today's revenue, pending orders, average order value.</li>
+  <li>Order-status breakdown; 14-day revenue chart; top products (by qty); payment-method and delivery-method breakdowns.</li>
+</ul>
+
+<h3>11.2 Profit &amp; Loss (<code>/admin/profit</code>)</h3>
+<p>The core accounting, computed over non-cancelled orders:</p>
+<pre>
+revenue        = Σ (subtotal − discount)        // money actually received for goods
+discounts given= Σ discount                      // total coupons given away
+COGS           = Σ (costPrice × qty) per item    // uses the per-order cost snapshot
+gross profit   = revenue − COGS
+net profit     = revenue − COGS − totalExpenses
+</pre>
+<ul>
+  <li><b>Cost snapshot</b> — each order item stores its <code>costPrice</code> at order time, so profit is frozen even if you later change a product's cost.</li>
+  <li><b>Expenses</b> are attributed to the day they were recorded for the per-day net-profit chart.</li>
+  <li><b>Stock purchases</b> are shown separately (they're already reflected in COGS, so they're not subtracted a second time).</li>
+  <li>The UI renders animated count-up cards (Revenue, Discounts given, COGS, Gross profit, Expenses, Stock purchases, Net profit), a per-day bar chart and a cumulative line chart.</li>
+</ul>
+</div>
+
+<!-- ===================== 12. API ===================== -->
+<div class="section">
+<h2>12. API Routes</h2>
+<table>
+  <tr><th>Route</th><th>Method</th><th>Purpose</th></tr>
+  <tr><td><code>/api/coupon</code></td><td>GET</td><td>Live coupon validation/preview (code + phone + subtotal) — does not mark used</td></tr>
+  <tr><td><code>/api/pincode</code></td><td>GET</td><td>Pincode → district/area lookup</td></tr>
+  <tr><td><code>/api/upload</code></td><td>POST</td><td>Admin-only image upload to R2 (returns <code>/media/&lt;key&gt;</code>)</td></tr>
+  <tr><td><code>/media/[key]</code></td><td>GET</td><td>Serve an uploaded media object from R2 (immutable cache)</td></tr>
+  <tr><td><code>/api/health</code></td><td>GET</td><td>Health check (writes a timestamp to <code>settings</code>)</td></tr>
+  <tr><td><code>/api/admin/export-orders</code></td><td>GET</td><td>Admin CSV export of orders</td></tr>
+</table>
+<p>Server actions (<code>"use server"</code> functions in <code>src/app/admin/actions.ts</code> and <code>src/lib/order-actions.ts</code>) handle mutations: login/logout, product save/delete/hide, offers, coupons, order status/payment, manual orders, expenses, vendors, purchases, settings.</p>
+</div>
+
+<!-- ===================== 13. SECURITY ===================== -->
+<div class="section">
+<h2>13. Security Model</h2>
+<ul>
+  <li><b>Admin auth</b> — PBKDF2 hashed passwords, HMAC-signed 7-day sessions, httpOnly cookie, <code>requireAdmin</code> on every page/action, 401 on unauthorized API calls.</li>
+  <li><b>Server-side re-pricing</b> — order totals, prices, delivery charge and stock are recomputed from D1 at order time; the client's numbers are never trusted.</li>
+  <li><b>Coupon authority</b> — discounts are re-validated and recomputed server-side; single-use + phone-binding are enforced in <code>placeOrder</code>, not just the preview API.</li>
+  <li><b>Secrets</b> — <code>AUTH_SECRET</code> and Razorpay keys are Worker secrets, never in the repo.</li>
+  <li><b>Public repo</b> — the repository is public (<code>github.com/AanandAB/Onapoo</code>); no credentials, hashes, or the admin password may be committed.</li>
+  <li><b>Canonical host</b> — middleware 301-redirects <code>www</code> → apex for a single canonical origin.</li>
+</ul>
+</div>
+
+<!-- ===================== 14. OPS ===================== -->
+<div class="section">
+<h2>14. Build, Deploy &amp; Operations</h2>
+<h3>Local development</h3>
+<pre>
+npm install
+npm run db:generate          # Drizzle migration from schema
+npm run db:migrate:local     # apply migration to local D1 (miniflare)
+npm run db:seed:local        # seed categories, products, admin, settings
+npm run dev                  # http://localhost:3000
+</pre>
+<h3>Deploy (manual — no CI/CD)</h3>
+<pre>
+npm run build     # next build (Turbopack)
+npm run deploy    # opennextjs-cloudflare build + deploy to Cloudflare
+</pre>
+<div class="warn">Kill any running <code>next dev</code> first — it holds a lock on <code>.open-next</code> (EPERM).</div>
+<h3>Secrets</h3>
+<table>
+  <tr><th>Secret</th><th>Purpose</th></tr>
+  <tr><td><code>AUTH_SECRET</code></td><td>Session-signing secret (<code>wrangler secret put AUTH_SECRET</code>)</td></tr>
+  <tr><td><code>RAZORPAY_KEY_ID</code> / <code>RAZORPAY_KEY_SECRET</code></td><td>Optional — enable online payments</td></tr>
+</table>
+<h3>D1 schema changes</h3>
+<p>
+  Adding a column/table is a two-step job: edit <code>src/db/schema.ts</code>, generate a
+  migration, and apply it with <code>wrangler d1 migrations apply onapookkal-db --remote</code>
+  (or an ad-hoc <code>wrangler d1 execute … --command</code> / <code>--file</code>).
+</p>
+<h3>Free-plan headroom (as of Aug 2026)</h3>
+<ul>
+  <li>D1: ~176 KB used of 5 GB; ~13K rows read/day of 5M limit.</li>
+  <li>Workers: ~1.1K D1 reads/day vs 100K requests/day free.</li>
+  <li>Static assets: a few MB of 5 GB.</li>
+  <li>Comfortably within the free tier, even at Onam launch.</li>
+</ul>
+</div>
+
+<footer>Onapookkal · ഓണപ്പൂക്കൾ — architecture &amp; feature guide · generated August 2026</footer>
+
+</body>
+</html>

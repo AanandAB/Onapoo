@@ -15,18 +15,24 @@ admin/CRM backend for running the shop day-to-day.
 ### Storefront (customer-facing)
 - **Bilingual UI** — English by default, Malayalam toggle (top-right); persisted in localStorage.
 - **Animated pookalam hero** with a live countdown to Thiruvonam (Onam 2026: Atham 17 Aug → Thiruvonam 26 Aug).
-- **Catalog** — category filter pills + a **search box** (matches name & colour in English and Malayalam).
+- **Announcement bar** — admin-editable top banner (English + Malayalam).
+- **Ordering window** — customers can browse anytime, but ordering is gated until a configurable date (default 21 Aug 2026); until then the shop shows "ordering opens …" instead of Add-to-cart.
+- **Catalog** — category filter pills + a **search box** (matches name & colour in English and Malayalam); featured products sort first.
+- **Product cards** — image, unit price, strike-through compare-at price with a −% badge, "★" featured mark, "Only N left" low-stock warning, and a sold-out overlay.
+- **Dynamic kg pricing** — for kg products, a live line total updates as the customer types grams (e.g. "500 g = ₹170"), and a **"Spend ₹"** box reverse-calculates grams from a budget amount (₹100 → ~294 g on a ₹340/kg flower). Two-way: type grams → ₹ updates, type ₹ → grams update.
 - **Product detail** — gallery, pricing, stock status, add-to-cart.
-- **Cart** — slide-in drawer, persisted to localStorage, mobile "view cart" bar, quantity controls.
-- **Smooth scroll + motion** — Lenis smooth scrolling (anchor-aware), GSAP ScrollTrigger, scroll-reveal animations, Onam motif decorations.
+- **Cart** — slide-in drawer, persisted to localStorage, mobile "view cart" bar + bottom nav, quantity controls.
+- **Smooth scroll + motion** — Lenis smooth scrolling (anchor-aware), GSAP ScrollTrigger, scroll-reveal animations, scroll-progress bar, Onam motif decorations.
 
 ### Checkout & orders
 - **Distance-based delivery charge** — Haversine from the store origin (`11.8314722, 75.5517778`): free ≤ 7 km, then ₹20 base + ₹5/extra km; free on orders over ₹2,000; ₹30 flat fallback when no location. Computed server-side (never trusts the client).
-- **"Share my location"** — required for home delivery, so the delivery map gets exact pins instead of pincode guesses.
+- **Delivery or store pickup** — pickup skips the delivery charge and uses the store address.
+- **"Share my location"** — used for home delivery so the delivery map gets exact pins instead of pincode guesses.
 - **Payment methods** — Cash on Delivery, Pay-on-WhatsApp, and Razorpay online (auto-hidden until API keys are set).
 - **Pincode lookup** — auto-fills district/area from the pincode.
 - **Orders save to D1** and simultaneously open a **pre-filled WhatsApp message** to the shop (+91 70340 26295).
 - **Order tracking** (`/track`) — customer enters order number + phone → live status timeline + a printable receipt.
+- **Server-side re-pricing** — item prices, delivery charge and stock are re-validated from the DB at order time (client values are never trusted).
 - **Privacy policy** (`/privacy`) — Indian IT Act 2000 + DPDP Act 2023 compliant, with Grievance Officer details.
 
 ### Coupons
@@ -37,12 +43,14 @@ admin/CRM backend for running the shop day-to-day.
 
 ### Admin panel (`/admin`)
 - **Login** — username `admin`; password stored in the D1 `admins` table (not in the repo).
-- **Products** — manage names (EN/ML), price, cost price, stock, featured status, sorting, and images (URL or browser-compressed base64 upload — no R2 needed).
+- **Products** — manage names (EN/ML), price, cost price, compare-at price, stock, featured status, **hidden (show/hide from store)**, sorting, unit, and images (URL or browser-compressed base64 upload — no R2 needed).
 - **Offers** — percentage / flat site offers.
 - **Coupons** — list, view used/unused, delete, and the in-page generator.
-- **Orders (CRM)** — full order list with status filters + search; per-order WhatsApp button, **"Send receipt on WhatsApp"** (pre-filled itemized message) and **"PDF bill"** (printable receipt at `/admin/orders/[id]/receipt`); CSV export; **manual order entry** for walk-in / phone orders.
+- **Orders (CRM)** — full order list with status filters + search; order status workflow (new → confirmed → packed → out for delivery → delivered / cancelled) with **automatic restock on cancel**; per-order WhatsApp button, **"Send receipt on WhatsApp"** (pre-filled itemized message) and **"PDF bill"** (printable receipt at `/admin/orders/[id]/receipt`); CSV export; **manual order entry** for walk-in / phone orders.
 - **Delivery map** (`/admin/map`) — Leaflet + OpenStreetMap plotting all pending delivery orders (exact pin from shared location, else pincode geocoded via Nominatim).
-- **Profit & Loss** (`/admin/profit`) — revenue, COGS, gross, expenses, and net profit with animated count-up cards, a per-day bar chart and a cumulative line chart. Cost price is **snapshotted per order**, so profit is frozen at order time.
+- **Reports** (`/admin/reports`) — total & today's revenue, order-status breakdown, a 14-day revenue chart, top products, and payment / delivery-method breakdowns.
+- **Profit & Loss** (`/admin/profit`) — revenue, **discounts given (coupons)**, COGS, gross profit, expenses and net profit with animated count-up cards, a per-day bar chart and a cumulative line chart. Cost price is **snapshotted per order**, so profit is frozen at order time.
+- **Vendors & purchases** — track suppliers and log stock purchases (feeds the P&L).
 - **Expenses tracker** — log extra overhead (transport, packing, etc.) that feeds the P&L report.
 - **Inventory** — server-side stock check + decrement on order; **restock automatically on cancel**.
 
@@ -54,6 +62,7 @@ admin/CRM backend for running the shop day-to-day.
 - **@opennextjs/cloudflare** — deploys to **Cloudflare Workers** (edge)
 - **Cloudflare D1** (SQLite) via **Drizzle ORM**
 - **GSAP + Lenis** (smooth scroll/animation), **lucide-react**, **Leaflet** (map)
+- **jsPDF + html2canvas-pro** (client-side PDF receipts)
 - **Fonts** bundled locally (Playfair Display, Plus Jakarta Sans, JetBrains Mono) — no runtime Google Fonts
 - **Product images** — self-hosted in `/public/images/flowers/*.jpg` or base64 data URLs in D1 (R2 is disabled)
 
@@ -76,7 +85,7 @@ npm run dev                  # http://localhost:3000
 Deploy is **manual** (no CI/CD — `git push` does not deploy):
 
 ```bash
-npm run build     # next build (webpack)
+npm run build     # next build (Turbopack)
 npm run deploy    # opennextjs-cloudflare build + deploy to Cloudflare
 ```
 
@@ -103,10 +112,11 @@ in `wrangler.jsonc` to keep the workers.dev fallback URL.
 src/
   app/
     (site)/          # storefront pages (home, shop, checkout, track, about, contact, faq, delivery, privacy)
-    admin/           # admin panel (login, dashboard, products, offers, coupons, orders, map, profit, reports)
+    admin/           # admin panel (login, dashboard, products, offers, coupons, orders, map, reports, vendors, purchases, profit, settings)
     api/             # route handlers (coupon, pincode, upload, health, export-orders)
   components/        # UI components (catalog, checkout, cart, admin, receipt, map, report…)
   db/                # Drizzle schema + client
   lib/               # business logic (site constants, coupons, orders, admin, geocode, auth, i18n, receipt)
+scripts/             # seed + D1 migration/utility scripts
 coupon_generator.py  # standalone Python GUI coupon generator (writes to D1 via wrangler)
 ```

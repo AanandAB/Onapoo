@@ -58,7 +58,17 @@ export function Catalog({
           </p>
         </div>
 
-        <p className="-mt-4 mb-6 text-sm text-muted">
+        {/* Order-ahead tip */}
+        <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3">
+          <span className="mt-0.5 text-lg leading-none" aria-hidden="true">🌼</span>
+          <p className="text-sm font-semibold text-gold-deep">
+            {lang === "ml"
+              ? "ഒരു ദിവസം മുൻകൂട്ടി ഓർഡർ ചെയ്യൂ — ദിവസവും രാവിലെ പറിച്ചെടുക്കുന്ന പുതിയ പൂക്കൾക്ക്."
+              : "Order a day in advance — for the freshest flowers, picked every morning."}
+          </p>
+        </div>
+
+        <p className="mb-6 text-sm text-muted">
           {lang === "ml" ? "നിരക്കുകൾ ദിവസവും മാറുന്നു" : "Rates are dynamic and change every day"}
           {!orderingOpen && (lang === "ml" ? ` · ഓർഡറുകൾ ${orderingLabel} മുതൽ` : ` · ordering opens ${orderingLabel}`)}
         </p>

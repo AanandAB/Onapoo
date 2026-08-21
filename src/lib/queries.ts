@@ -38,6 +38,17 @@ export async function getFeaturedProducts(): Promise<ProductRow[]> {
     .orderBy(asc(products.sortOrder));
 }
 
+export async function getStockMap(): Promise<Record<string, number>> {
+  const db = getDb();
+  const rows = await db
+    .select({ id: products.id, stock: products.stock })
+    .from(products)
+    .where(eq(products.hidden, false));
+  const map: Record<string, number> = {};
+  for (const r of rows) map[r.id] = r.stock;
+  return map;
+}
+
 export async function getSettingsMap(): Promise<Record<string, string>> {
   const db = getDb();
   const rows = await db.select().from(settings);

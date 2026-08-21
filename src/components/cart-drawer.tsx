@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useLang, unitLabel } from "@/lib/i18n";
 import { useCart } from "@/components/cart-context";
+import { useStock } from "@/components/stock-context";
 import { formatPrice, formatQty, lineTotal } from "@/lib/site";
 
 export function CartDrawer() {
   const { lang, t } = useLang();
   const { items, open, setOpen, setQty, remove, subtotal, count } = useCart();
+  const stocks = useStock();
 
   if (!open) return null;
 
@@ -42,53 +44,53 @@ export function CartDrawer() {
             <p className="py-16 text-center text-muted">{t("cart_empty")}</p>
           ) : (
             <ul className="space-y-4">
-              {items.map((item) => (
-                <li key={item.id} className="flex items-center gap-3">
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-gold/10 text-gold-deep">
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M12 3c3 3 6 4.5 6 8a6 6 0 1 1-12 0c0-3.5 3-5 6-8z" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">
-                      {lang === "ml" ? item.nameMl : item.name}
-                    </p>
-                    <p className="text-xs text-muted">
-                      {formatPrice(item.price)} / {unitLabel(item.unit, t)}
-                    </p>
-                    <div className="mt-1.5 flex items-center gap-2">
-                      <button
-                        onClick={() => setQty(item.id, item.unit === "kg" ? Math.max(0.05, item.qty - 0.25) : item.qty - 1)}
-                        className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70"
-                        aria-label="Decrease"
-                      >
-                        −
-                      </button>
-                      <span className="min-w-[3.5rem] text-center text-sm font-semibold">{formatQty(item.qty, item.unit)}</span>
-                      <button
-                        onClick={() =>
-                          setQty(
-                            item.id,
-                            Math.min(item.stock ?? Number.POSITIVE_INFINITY, item.qty + (item.unit === "kg" ? 0.25 : 1)),
-                          )
-                        }
-                        disabled={item.qty >= (item.stock ?? Number.POSITIVE_INFINITY)}
-                        className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70 disabled:cursor-not-allowed disabled:opacity-35"
-                        aria-label="Increase"
-                      >
-                        +
-                      </button>
-                      <button
-                        onClick={() => remove(item.id)}
-                        className="ml-auto text-xs text-chethi hover:underline"
-                      >
-                        {t("cart_remove")}
-                      </button>
+              {items.map((item) => {
+                const step = item.unit === "kg" ? 0.25 : 1;
+                const max = stocks[item.id] ?? item.stock ?? Number.POSITIVE_INFINITY;
+                const atMax = item.qty >= max;
+                return (
+                  <li key={item.id} className="flex items-center gap-3">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-gold/10 text-gold-deep">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                        <path d="M12 3c3 3 6 4.5 6 8a6 6 0 1 1-12 0c0-3.5 3-5 6-8z" strokeLinejoin="round" />
+                      </svg>
                     </div>
-                  </div>
-                  <p className="text-sm font-semibold">{formatPrice(lineTotal(item.price, item.qty))}</p>
-                </li>
-              ))}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">
+                        {lang === "ml" ? item.nameMl : item.name}
+                      </p>
+                      <p className="text-xs text-muted">
+                        {formatPrice(item.price)} / {unitLabel(item.unit, t)}
+                      </p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <button
+                          onClick={() => setQty(item.id, item.unit === "kg" ? Math.max(0.05, item.qty - 0.25) : item.qty - 1)}
+                          className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70"
+                          aria-label="Decrease"
+                        >
+                          −
+                        </button>
+                        <span className="min-w-[3.5rem] text-center text-sm font-semibold">{formatQty(item.qty, item.unit)}</span>
+                        <button
+                          onClick={() => setQty(item.id, Math.min(max, item.qty + step))}
+                          disabled={atMax}
+                          className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70 disabled:cursor-not-allowed disabled:opacity-35"
+                          aria-label="Increase"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => remove(item.id)}
+                          className="ml-auto text-xs text-chethi hover:underline"
+                        >
+                          {t("cart_remove")}
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-sm font-semibold">{formatPrice(lineTotal(item.price, item.qty))}</p>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

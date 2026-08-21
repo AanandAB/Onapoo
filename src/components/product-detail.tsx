@@ -62,7 +62,7 @@ export function ProductDetail({
 
   const onAdd = () =>
     add(
-      { id: product.id, name: product.nameEn, nameMl: product.nameMl, unit: product.unit, price: product.price },
+      { id: product.id, name: product.nameEn, nameMl: product.nameMl, unit: product.unit, price: product.price, stock: product.stock },
       amountQty,
     );
 

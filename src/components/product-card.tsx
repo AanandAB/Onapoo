@@ -56,6 +56,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
         nameMl: product.nameMl,
         unit: product.unit,
         price: product.price,
+        stock: product.stock,
       },
       isKg ? 0.5 : 1,
     );

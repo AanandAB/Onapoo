@@ -66,8 +66,14 @@ export function CartDrawer() {
                       </button>
                       <span className="min-w-[3.5rem] text-center text-sm font-semibold">{formatQty(item.qty, item.unit)}</span>
                       <button
-                        onClick={() => setQty(item.id, item.qty + (item.unit === "kg" ? 0.25 : 1))}
-                        className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70"
+                        onClick={() =>
+                          setQty(
+                            item.id,
+                            Math.min(item.stock ?? Number.POSITIVE_INFINITY, item.qty + (item.unit === "kg" ? 0.25 : 1)),
+                          )
+                        }
+                        disabled={item.qty >= (item.stock ?? Number.POSITIVE_INFINITY)}
+                        className="grid h-6 w-6 place-items-center rounded-full border border-ink/15 text-ink/70 disabled:cursor-not-allowed disabled:opacity-35"
                         aria-label="Increase"
                       >
                         +

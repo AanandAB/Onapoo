@@ -17,6 +17,7 @@ export type CartItem = {
   unit: string;
   price: number;
   qty: number;
+  stock?: number; // max qty that can be ordered (captured when added to the cart)
 };
 
 type Toast = { nameEn: string; nameMl: string; count: number };
@@ -35,6 +36,12 @@ type CartCtx = {
 };
 
 const CartContext = createContext<CartCtx | null>(null);
+
+// Clamp a quantity to the available stock (no cap when stock is unknown).
+function clampQty(qty: number, stock?: number): number {
+  const max = stock ?? Number.POSITIVE_INFINITY;
+  return Math.max(0, Math.min(max, qty));
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -66,9 +73,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
-        return prev.map((i) => (i.id === item.id ? { ...i, qty: i.qty + qty } : i));
+        const stock = existing.stock ?? item.stock;
+        return prev.map((i) =>
+          i.id === item.id ? { ...i, stock, qty: clampQty(i.qty + qty, stock) } : i,
+        );
       }
-      return [...prev, { ...item, qty }];
+      return [...prev, { ...item, qty: clampQty(qty, item.stock) }];
     });
     // Don't open the drawer — show a toast so the customer can keep browsing.
     const currentCount = items.reduce((n, i) => n + i.qty, 0);
@@ -81,7 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) =>
       qty <= 0
         ? prev.filter((i) => i.id !== id)
-        : prev.map((i) => (i.id === id ? { ...i, qty } : i)),
+        : prev.map((i) => (i.id === id ? { ...i, qty: clampQty(qty, i.stock) } : i)),
     );
 
   const clear = () => setItems([]);

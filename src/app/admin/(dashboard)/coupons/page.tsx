@@ -4,6 +4,19 @@ import { CouponGenerator } from "@/components/coupon-generator";
 
 export const dynamic = "force-dynamic";
 
+// Human-readable label + value for each coupon type.
+function couponLabel(type: string) {
+  if (type === "percent") return "Discount %";
+  if (type === "flat") return "Flat ₹ off";
+  return "Free delivery";
+}
+
+function couponValue(type: string, value: number) {
+  if (type === "percent") return `${value}%`;
+  if (type === "flat") return `₹${value}`;
+  return "—";
+}
+
 export default async function CouponsPage() {
   await requireAdmin();
   const coupons = await listCoupons();
@@ -43,10 +56,8 @@ export default async function CouponsPage() {
               {coupons.map((c) => (
                 <tr key={c.code} className="border-b border-ink/5 last:border-0">
                   <td className="px-4 py-3 font-mono font-semibold">{c.code}</td>
-                  <td className="px-4 py-3">
-                    {c.type === "percent" ? "Discount %" : "Free delivery"}
-                  </td>
-                  <td className="px-4 py-3">{c.type === "percent" ? `${c.value}%` : "—"}</td>
+                  <td className="px-4 py-3">{couponLabel(c.type)}</td>
+                  <td className="px-4 py-3">{couponValue(c.type, c.value)}</td>
                   <td className="px-4 py-3">{c.phone}</td>
                   <td className="px-4 py-3">
                     {c.used ? (
